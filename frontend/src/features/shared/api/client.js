@@ -1,10 +1,10 @@
 import axios from "axios";
 
-// Optional: point a local build at http://localhost:3006. Production keeps
-// using the deployed API when the variable is absent.
+// Optional: point a local build at http://localhost:3006. Production calls
+// /api on its own origin, which Vercel rewrites to the Render service.
 const API_ORIGIN = (
   import.meta.env.VITE_API_URL ||
-  "https://insta-clone-backend-n518.onrender.com"
+  ""
 ).replace(/\/$/, "");
 
 const createClient = (path) =>

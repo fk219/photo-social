@@ -38,6 +38,17 @@ app.use(
     })
 );
 
+// Cookie-auth writes must come from an allowed origin. Same-origin browser
+// requests still send Origin, and curl without one is allowed.
+app.use((req, res, next) => {
+    if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+    const origin = req.headers.origin;
+    if (origin && !allowedOrigins.includes(origin)) {
+        return res.status(403).json({ message: "Origin not allowed." });
+    }
+    return next();
+});
+
 app.get("/", (req, res) => {
     res.send("All API's are working!");
 });

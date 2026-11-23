@@ -6,8 +6,8 @@ const BIO_LIMIT = 160;
 
 const cookieOptions = {
     httpOnly: true,
-    sameSite: "none",
-    secure: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
 };
 
 const publicUser = (user) => ({
