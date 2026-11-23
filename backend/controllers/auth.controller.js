@@ -241,6 +241,12 @@ const changePasswordController = async (req, res) => {
         return res.status(404).json({ message: "User Not Found" });
     }
 
+    if (String(user.email).toLowerCase() === DEMO_EMAIL) {
+        return res.status(403).json({
+            message: "The shared demo account cannot change its password.",
+        });
+    }
+
     const doesPasswordMatch = await bcrypt.compare(
         currentPassword,
         user.password
