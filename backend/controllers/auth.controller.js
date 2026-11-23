@@ -154,8 +154,8 @@ const loginController = async (req, res) => {
         .select("+password");
 
     if (!user) {
-        return res.status(409).json({
-            message: "User is not found!",
+        return res.status(401).json({
+            message: "Invalid username or password.",
         });
     }
 
@@ -163,7 +163,7 @@ const loginController = async (req, res) => {
 
     if (!doesPasswordMatch) {
         return res.status(401).json({
-            message: "Incorrect Password!!",
+            message: "Invalid username or password.",
         });
     }
 
