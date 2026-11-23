@@ -516,6 +516,29 @@
   }
 }
 
+.rail-legal {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  a {
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s $ease-out, border-color 0.2s $ease-out;
+
+    &:hover {
+      color: $shutter-ink;
+      border-color: currentColor;
+    }
+  }
+}
+
 .rail-colophon {
   margin-top: 0.9rem;
   color: $graphite-deep;

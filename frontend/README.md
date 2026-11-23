@@ -1,16 +1,37 @@
-# React + Vite
+# Journal frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React and Vite client for Journal, a quiet photo journal and contact sheet. The interface is built from Sass tokens, a serif masthead, and a printed contact-sheet layout.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm run lint
+npm run build
+npm run preview
+```
 
-## React Compiler
+The client talks to the deployed API by default. To point it at a local API, create `.env.local` with `VITE_API_URL=http://localhost:3006`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Routes
 
-## Expanding the ESLint configuration
+| Route | Access | Purpose |
+|---|---|---|
+| `/` | Signed-in members see the feed | Contact sheet of recent frames |
+| `/u/:username` | Public | Profile and photo portfolio |
+| `/login` | Public | Sign in |
+| `/register` | Public | Create an account |
+| `/create-post` | Signed in | Upload a frame |
+| `/privacy` | Public | Privacy notes |
+| `/terms` | Public | Terms of use |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Structure
+
+- `src/features/auth`: session hydration, login, and registration.
+- `src/features/posts`: feed, post card, comments, create page, and post context.
+- `src/features/users`: public profile page.
+- `src/features/legal`: privacy and terms pages.
+- `src/features/shared`: navbar, avatar, API clients, image compression, and global styles.
+
+`public/robots.txt` and `public/sitemap.xml` handle crawler discovery. Vercel Analytics is rendered once in `App.jsx` and needs no environment variables.

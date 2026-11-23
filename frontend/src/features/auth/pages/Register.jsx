@@ -73,7 +73,7 @@ const Register = () => {
     <main className="auth-page">
       <section className="auth-card" aria-labelledby="register-title">
         <div className="auth-meta">
-          <span>Insta / Photo journal</span>
+          <span>Journal / Photo journal</span>
           <span>Join</span>
         </div>
 
@@ -185,6 +185,12 @@ const Register = () => {
             Sign in
           </Link>
         </p>
+
+        <nav className="auth-legal" aria-label="Legal">
+          <Link to="/privacy">Privacy</Link>
+          <span aria-hidden="true">·</span>
+          <Link to="/terms">Terms</Link>
+        </nav>
       </section>
     </main>
   );

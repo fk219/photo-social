@@ -19,9 +19,9 @@ const Navbar = () => {
   return (
     <nav className="navbar" aria-label="Primary">
       <div className="navbar-inner">
-        <Link to="/" className="navbar-brand" aria-label="Insta Journal home">
+        <Link to="/" className="navbar-brand" aria-label="Journal home">
           <span className="brand-mark" aria-hidden="true" />
-          <span className="brand-name">Insta</span>
+          <span className="brand-name">Journal</span>
           <span className="brand-tag" aria-hidden="true">
             Photo journal
           </span>

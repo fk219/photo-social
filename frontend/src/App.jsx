@@ -1,4 +1,5 @@
 import {RouterProvider} from "react-router-dom"
+import { Analytics } from "@vercel/analytics/react"
 import {routes} from "./app.routes"
 import "./features/shared/global.scss"
 
@@ -14,6 +15,7 @@ function App() {
           <RouterProvider router={routes} />
         </PostContextProvider>
       </AuthProvider>
+      <Analytics />
     </>
   )
 }

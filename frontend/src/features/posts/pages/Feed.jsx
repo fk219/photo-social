@@ -176,7 +176,7 @@ const Feed = () => {
             <p className="eyebrow">About this journal</p>
             <h2>Notes from the field.</h2>
             <p>
-              Insta is a contact sheet for slow looking: a frame, a caption, a
+              Journal is a contact sheet for slow looking: a frame, a caption, a
               date. Just photographs and the notes that come with them.
             </p>
 
@@ -207,7 +207,13 @@ const Feed = () => {
             )}
           </div>
 
-          <p className="rail-colophon">Insta, a photo journal</p>
+          <nav className="rail-legal" aria-label="Legal">
+            <Link to="/privacy">Privacy</Link>
+            <span aria-hidden="true">·</span>
+            <Link to="/terms">Terms</Link>
+          </nav>
+
+          <p className="rail-colophon">Journal, a photo journal</p>
         </aside>
       </div>
     </main>

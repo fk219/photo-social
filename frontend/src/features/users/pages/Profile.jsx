@@ -558,6 +558,15 @@ const Profile = () => {
             </>
           )}
         </section>
+
+        <footer className="profile-legal">
+          <p>Journal, a photo journal</p>
+          <nav aria-label="Legal">
+            <Link to="/privacy">Privacy</Link>
+            <span aria-hidden="true">·</span>
+            <Link to="/terms">Terms</Link>
+          </nav>
+        </footer>
       </div>
     </main>
   );

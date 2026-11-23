@@ -56,16 +56,22 @@ The interface stays a printed contact sheet: frame numbers, date stamps, white p
 **Security baseline**
 - `helmet` security headers.
 - `express-rate-limit`: 10 requests/minute per IP on auth routes, 30/minute on posts and comments.
-- JWT in an `httpOnly`, `SameSite=None`, `Secure` cookie; bcrypt password hashing.
+- JWT in an `httpOnly`, `SameSite=Lax`, `Secure` cookie in production; bcrypt password hashing.
 - Comment and bio length validation on both client and server.
 - CORS remains restricted to the production app and local development origins.
 - `trust proxy` is set for Render/Vercel deployments.
+
+**Public pages and discovery**
+- `/privacy` and `/terms` describe what Journal stores, the processors it relies on, deletion requests, and the rules for the beta service.
+- Both pages are linked from the login page, the feed rail, and every public profile.
+- `robots.txt`, `sitemap.xml`, a canonical URL and an Open Graph URL cover search and sharing basics.
+- Vercel Analytics runs in the app root and needs no environment variables.
 
 ## Tech stack
 
 | Layer | Choice |
 |---|---|
-| Frontend | React 19, Vite, react-router-dom, Sass design tokens |
+| Frontend | React 19, Vite, react-router-dom, Sass design tokens, Vercel Analytics |
 | Backend | Node.js, Express 5, Mongoose, JWT, bcrypt, multer, ImageKit, helmet, express-rate-limit |
 | Hosting | Vercel (web), Render (API), MongoDB Atlas (database) |
 
@@ -86,6 +92,7 @@ frontend/
     features/auth/            session hydration, login, register
     features/posts/           feed, post card, comments, create page, context
     features/users/           public profile page
+    features/legal/           privacy and terms pages
     features/shared/          navbar, avatar, API clients, image compression
 ```
 
