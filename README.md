@@ -5,6 +5,8 @@ A photo journal: a quiet feed of image posts, likes, and a small publishing flow
 **Live app:** https://insta-clone.furqankhan.dev
 **API:** https://insta-clone-backend-n518.onrender.com
 
+![Insta Clone](docs/preview.png)
+
 ![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
 ![Node](https://img.shields.io/badge/Node.js-22-5FA04E?logo=node.js&logoColor=white)
