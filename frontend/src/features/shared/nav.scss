@@ -98,6 +98,48 @@
   border-left: 1px solid $hairline;
 }
 
+.nav-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 36px;
+  padding: 3px;
+  margin: -3px;
+  border-radius: 50%;
+  min-width: 0;
+  transition: color 0.2s $ease-out;
+
+  &:hover .nav-user-name {
+    color: $shutter-ink;
+  }
+
+  &:hover .avatar {
+    border-color: $ink;
+  }
+}
+
+.nav-user-placeholder {
+  display: block;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  margin-left: 0.9rem;
+  border: 1px solid $hairline;
+  border-radius: 50%;
+  background-color: $paper-deep;
+  animation: nav-placeholder-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes nav-placeholder-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .nav-user-name {
   max-width: 12rem;
   overflow: hidden;

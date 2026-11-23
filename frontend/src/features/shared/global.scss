@@ -157,7 +157,7 @@ button {
       outline: none;
       border-color: $ink;
       background-color: $card;
-      box-shadow: 0 0 0 3px rgba(226, 74, 43, 0.14);
+      box-shadow: 0 0 0 3px rgba(201, 58, 29, 0.14);
     }
 
     &:disabled {
@@ -223,6 +223,19 @@ button {
     font-size: 0.6rem;
     font-weight: 700;
   }
+}
+
+.route-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 48vh;
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 @media (prefers-reduced-motion: reduce) {

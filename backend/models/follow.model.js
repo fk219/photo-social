@@ -1,32 +1,38 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
-const followSchema = new mongoose.Schema({
-    follower: {
-        type: String,
-        // type: mongoose.Schema.Types.ObjectId,
-        // ref: "users",
-        required: [true, "Follower is Required!"]
+const followSchema = new mongoose.Schema(
+    {
+        follower: {
+            type: String,
+            // type: mongoose.Schema.Types.ObjectId,
+            // ref: "users",
+            required: [true, "Follower is Required!"],
+        },
+        followee: {
+            type: String,
+            // type: mongoose.Schema.Types.ObjectId,
+            // ref: "users",
+            required: [true, "Followee is Required!"],
+        },
+        status: {
+            type: String,
+            default: "pending",
+            enum: {
+                values: ["pending", "approved", "rejected"],
+                message: "status can only be pending, approved or rejected",
+            },
+        },
     },
-    followee: {
-        type: String,
-        // type: mongoose.Schema.Types.ObjectId,
-        // ref: "users",
-        required: [true, "Followee is Required!"]
-    },
-    status: {
-        type: String,
-        default: "pending",
-        enum: {
-            values: ["pending", "approved", "rejected"],
-            message: "status can only be pending, approved or rejected"
-        }
+    {
+        timestamps: true,
     }
-}, {
-    timestamps: true
-})
+);
 
-followSchema.index({follower: 1, followee: 1}, {unique: true})
+followSchema.index({ follower: 1, followee: 1 }, { unique: true });
+// Profile counts query by followee / follower independently.
+followSchema.index({ followee: 1 });
+followSchema.index({ follower: 1 });
 
-const followModel = mongoose.model("Follows", followSchema)
+const followModel = mongoose.model("Follows", followSchema);
 
-module.exports = followModel
+module.exports = followModel;

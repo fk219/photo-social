@@ -38,6 +38,8 @@ const Register = () => {
 
     if (!form.password) {
       next.password = "Create a password.";
+    } else if (form.password.length < 6) {
+      next.password = "Use at least 6 characters.";
     }
 
     setFieldErrors(next);

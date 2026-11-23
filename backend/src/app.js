@@ -1,32 +1,55 @@
-const express = require('express')
-const cookieParser = require("cookie-parser")
-const cors = require("cors")
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const helmet = require("helmet");
+const compression = require("compression");
 
-const authRouter = require("../routes/auth.route")
-const postRouter = require("../routes/post.route")
-const userRouter = require("../routes/user.route")
+const authRouter = require("../routes/auth.route");
+const postRouter = require("../routes/post.route");
+const userRouter = require("../routes/user.route");
+const errorHandler = require("../middleware/error.middleware");
 
-const app = express()
-app.use(express.json())
-app.use(cookieParser())
+const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://insta-clone.furqankhan.dev",
-    "https://scaling-waddle-q5v7p6gvxj73wrx-5173.app.github.dev",
-    "https://5173-firebase-sheriyans-1776681977873.cluster-55m56i2mgjalcvl276gecmncu6.cloudworkstations.dev",
-    "https://nx5kyy-5173.csb.app"
-  ],
-  credentials: true,
-}))
+// Render/Vercel sit in front of the API; this lets rate limiting key on the
+// real client address without trusting an arbitrary proxy chain.
+app.set("trust proxy", 1);
 
-app.get('/', (req, res) => {
-    res.send("All API's are working!")
-})
+const allowedOrigins = (
+    process.env.CORS_ORIGINS ||
+    [
+        "http://localhost:5173",
+        "https://insta-clone.furqankhan.dev",
+    ].join(",")
+)
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
-app.use("/api/auth", authRouter)
-app.use("/api/posts", postRouter)
-app.use("/api/users", userRouter)
+app.use(helmet());
+app.use(compression());
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
 
-module.exports = app
+app.use(
+    cors({
+        origin: allowedOrigins,
+        credentials: true,
+    })
+);
+
+app.get("/", (req, res) => {
+    res.send("All API's are working!");
+});
+
+app.use("/api/auth", authRouter);
+app.use("/api/posts", postRouter);
+app.use("/api/users", userRouter);
+
+app.use((req, res) => {
+    res.status(404).json({ message: "API route not found." });
+});
+
+app.use(errorHandler);
+
+module.exports = app;

@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePost } from "../hooks/usePost.js";
 import { getErrorMessage } from "../../shared/utils/error";
+import {
+  ACCEPTED_IMAGE_TYPES,
+  ALLOWED_IMAGE_TYPES,
+  compressImage,
+} from "../../shared/utils/image";
 
 import "../style/createPost.scss";
 
@@ -11,9 +16,11 @@ const CreatePost = () => {
   const [preview, setPreview] = useState(null);
   const [previewFailed, setPreviewFailed] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [error, setError] = useState("");
 
   const fileInputRef = useRef(null);
+  const compressionRef = useRef(0);
   const { loading, handleCreatePost } = usePost();
   const navigate = useNavigate();
 
@@ -27,25 +34,51 @@ const CreatePost = () => {
     fileInputRef.current?.click();
   };
 
-  const acceptFile = (candidate) => {
+  const acceptFile = async (candidate) => {
     setError("");
 
     if (!candidate) return;
 
-    if (!candidate.type?.startsWith("image/")) {
-      setError("Choose an image file for this frame.");
+    if (!ALLOWED_IMAGE_TYPES.has(candidate.type)) {
+      compressionRef.current += 1;
+      setCompressing(false);
+      setFile(null);
+      setPreview(null);
+      setError("Choose a JPEG, PNG, or WebP photograph.");
       return;
     }
 
+    const requestId = compressionRef.current + 1;
+    compressionRef.current = requestId;
+
     setPreviewFailed(false);
-    setFile(candidate);
+    setFile(null);
     setPreview(URL.createObjectURL(candidate));
+    setCompressing(true);
+
+    try {
+      const compressed = await compressImage(candidate);
+
+      if (compressionRef.current !== requestId) return;
+
+      setFile(compressed);
+    } catch (err) {
+      if (compressionRef.current !== requestId) return;
+
+      setError(
+        err?.message || "This photograph could not be prepared for upload."
+      );
+    } finally {
+      if (compressionRef.current === requestId) {
+        setCompressing(false);
+      }
+    }
   };
 
   const handleFileChange = (event) => {
     const [selected] = event.target.files ?? [];
-    acceptFile(selected);
     event.target.value = "";
+    acceptFile(selected);
   };
 
   const handleKeyDown = (event) => {
@@ -77,7 +110,11 @@ const CreatePost = () => {
     setError("");
 
     if (!file) {
-      setError("Choose a photograph before adding this frame.");
+      setError(
+        compressing
+          ? "The photograph is still being optimized."
+          : "Choose a photograph before adding this frame."
+      );
       return;
     }
 
@@ -125,6 +162,7 @@ const CreatePost = () => {
             aria-label={
               hasPreview ? "Change selected photograph" : "Choose a photograph"
             }
+            aria-busy={compressing}
           >
             {hasPreview ? (
               <>
@@ -134,7 +172,9 @@ const CreatePost = () => {
                   className="dropzone-preview"
                   onError={() => setPreviewFailed(true)}
                 />
-                <span className="dropzone-change">Change photograph</span>
+                <span className="dropzone-change">
+                  {compressing ? "Optimizing…" : "Change photograph"}
+                </span>
               </>
             ) : (
               <div className="dropzone-empty">
@@ -153,11 +193,16 @@ const CreatePost = () => {
               ref={fileInputRef}
               id="frame-image"
               type="file"
-              accept="image/*"
+              accept={ACCEPTED_IMAGE_TYPES}
               hidden
               onChange={handleFileChange}
             />
           </div>
+
+          <p className="studio-file-note">
+            JPEG, PNG or WebP. Photographs are resized to 1600 px and
+            compressed in your browser before upload.
+          </p>
 
           <div className="field">
             <div className="field-label-row">
@@ -174,7 +219,7 @@ const CreatePost = () => {
               aria-describedby="frame-caption-hint"
             />
             <p className="field-hint" id="frame-caption-hint">
-              Optional — the photograph can speak for itself.
+              Optional. The photograph can speak for itself.
             </p>
           </div>
 
@@ -185,19 +230,28 @@ const CreatePost = () => {
           )}
 
           <div className="studio-actions">
-            <p className="studio-note">One photograph per entry.</p>
+            <p className="studio-note">
+              {compressing
+                ? "Optimizing the photograph…"
+                : "One photograph per entry."}
+            </p>
             <button
               type="submit"
               className={`button primary-button${
-                loading ? " is-loading" : ""
+                loading || compressing ? " is-loading" : ""
               }`}
-              disabled={!file || loading}
-              aria-busy={loading}
+              disabled={!file || loading || compressing}
+              aria-busy={loading || compressing}
             >
               {loading ? (
                 <>
                   <span className="spinner" aria-hidden="true" />
                   Adding frame…
+                </>
+              ) : compressing ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  Optimizing…
                 </>
               ) : (
                 "Add frame"

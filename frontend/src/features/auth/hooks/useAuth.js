@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { AuthContext } from "../auth.context";
-import { login, register } from "../services/auth.api";
+import { login, logout, register } from "../services/auth.api";
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -9,7 +9,7 @@ export const useAuth = () => {
     throw new Error("useAuth must be used inside an AuthProvider");
   }
 
-  const { user, setUser, loading, setLoading } = context;
+  const { user, setUser, loading, setLoading, initializing } = context;
 
   const handleLogin = async (username, password) => {
     setLoading(true);
@@ -27,7 +27,7 @@ export const useAuth = () => {
     setLoading(true);
 
     try {
-      const response = await register(username, email, password);
+      const response = await register(email, username, password);
       setUser(response.user);
       return response;
     } finally {
@@ -36,14 +36,27 @@ export const useAuth = () => {
   };
 
   const handleLogout = () => {
+    // Clear the interface immediately; the cookie revocation can settle in
+    // the background so a cold API never traps the user in a signed-in state.
     setUser(null);
+    logout().catch(() => {
+      // The local session is already cleared; a refresh will re-check the API.
+    });
+  };
+
+  const updateUser = (updates) => {
+    setUser((current) =>
+      current ? { ...current, ...updates } : current
+    );
   };
 
   return {
     user,
+    initializing,
     loading,
     handleLogin,
     handleRegister,
     handleLogout,
+    updateUser,
   };
 };

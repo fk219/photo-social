@@ -1,0 +1,449 @@
+@use "../../shared/tokens" as *;
+
+.profile-page {
+  min-height: 100%;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 4vw, 2rem)
+    clamp(3.5rem, 8vw, 6rem);
+}
+
+.profile-shell {
+  width: 100%;
+  max-width: 1040px;
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 36px;
+  margin-bottom: 1.35rem;
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 0.2s $ease-out;
+
+  &:hover {
+    color: $shutter-ink;
+  }
+}
+
+.profile-header {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background-color: $card;
+  border: 1px solid $hairline;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 64px;
+    height: 2px;
+    background-color: $shutter;
+  }
+}
+
+.profile-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(1rem, 3vw, 1.5rem);
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.profile-copy {
+  min-width: 0;
+
+  h1 {
+    margin: 0.3rem 0 0.55rem;
+    font-family: $font-display;
+    font-size: clamp(2.5rem, 6vw, 3.6rem);
+    font-weight: 400;
+    line-height: 0.94;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+  }
+}
+
+.profile-bio {
+  max-width: 54ch;
+  color: $graphite-deep;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+
+  &.profile-bio--empty {
+    font-style: italic;
+    opacity: 0.82;
+  }
+}
+
+.profile-stats {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.25rem clamp(1.5rem, 4vw, 2.75rem);
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  dt {
+    @include eyebrow;
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+  }
+
+  dd {
+    color: $ink;
+    font-family: $font-mono;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+}
+
+.profile-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.profile-action {
+  min-height: 42px;
+  padding: 0.65rem 1rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+}
+
+.profile-action-error {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.profile-bio-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  grid-column: 1 / -1;
+  max-width: 640px;
+  padding-top: 1.25rem;
+  border-top: 1px solid $hairline;
+}
+
+.profile-bio-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+
+  .button {
+    min-height: 42px;
+    padding: 0.65rem 1rem;
+    font-size: 0.6rem;
+  }
+}
+
+.profile-sheet {
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.profile-sheet-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid $hairline;
+
+  h2 {
+    font-family: $font-display;
+    font-size: clamp(1.9rem, 4vw, 2.35rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+}
+
+.profile-sheet-count {
+  @include eyebrow;
+  font-size: 0.54rem;
+  white-space: nowrap;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.75rem, 2vw, 1.1rem);
+}
+
+.profile-frame {
+  min-width: 0;
+  margin: 0;
+  background-color: $card;
+  border: 1px solid $hairline;
+}
+
+.profile-frame-link {
+  display: block;
+}
+
+.profile-frame-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background-color: $paper-deep;
+  border-bottom: 1px solid $hairline;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s $ease-out;
+  }
+}
+
+.profile-frame-caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  padding: 0.55rem 0.65rem;
+  background-color: rgba(18, 19, 15, 0.84);
+  color: $paper;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s $ease-out, transform 0.25s $ease-out;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.profile-frame:hover,
+.profile-frame:focus-within {
+  .profile-frame-media img {
+    transform: scale(1.035);
+  }
+
+  .profile-frame-caption {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-frame-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.5rem;
+  padding: 0.5rem 0.6rem;
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-empty,
+.profile-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(2.25rem, 6vw, 3.5rem) clamp(1.25rem, 5vw, 2.75rem);
+  background-color: $card;
+  border: 1px solid $hairline;
+  text-align: center;
+
+  h1,
+  h3 {
+    margin: 0.6rem 0 0.7rem;
+    font-family: $font-display;
+    font-size: clamp(2.1rem, 6vw, 2.9rem);
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+  }
+
+  > p:not(.eyebrow) {
+    max-width: 42ch;
+    color: $graphite-deep;
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+
+  .button {
+    margin-top: 1.3rem;
+  }
+}
+
+.profile-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 2rem;
+}
+
+.profile-more-error {
+  color: $shutter-ink;
+  font-family: $font-mono;
+  font-size: 0.58rem;
+  line-height: 1.55;
+}
+
+.profile-end {
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.54rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.profile-skeleton-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background-color: $card;
+  border: 1px solid $hairline;
+}
+
+.profile-skeleton-avatar {
+  flex: none;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+}
+
+.profile-skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+  padding-top: 1.25rem;
+}
+
+.profile-skeleton-line {
+  display: block;
+  width: 82%;
+  height: 11px;
+}
+
+.profile-skeleton-line--short {
+  width: 32%;
+}
+
+.profile-skeleton-line--medium {
+  width: 56%;
+}
+
+.profile-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.75rem, 2vw, 1.1rem);
+  margin-top: 2rem;
+}
+
+.profile-skeleton-tile {
+  display: block;
+  aspect-ratio: 1;
+  border: 1px solid $hairline;
+}
+
+.profile-skeleton-avatar,
+.profile-skeleton-line,
+.profile-skeleton-tile {
+  background: linear-gradient(
+    90deg,
+    $paper-deep 25%,
+    #f7f8f3 37%,
+    $paper-deep 63%
+  );
+  background-size: 400% 100%;
+  animation: profile-shimmer 1.4s ease infinite;
+}
+
+@keyframes profile-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profile-actions {
+    justify-content: flex-start;
+  }
+
+  .profile-grid,
+  .profile-skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .profile-page {
+    padding-top: 1.5rem;
+  }
+
+  .avatar.avatar--profile,
+  .profile-skeleton-avatar {
+    width: 68px;
+    height: 68px;
+  }
+
+  .profile-identity {
+    gap: 0.9rem;
+  }
+
+  .profile-copy h1 {
+    font-size: clamp(2.2rem, 11vw, 2.8rem);
+  }
+
+  .profile-stats {
+    gap: 1rem 1.5rem;
+  }
+
+  .profile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+
+    .profile-action {
+      width: 100%;
+    }
+  }
+
+  .profile-skeleton-header {
+    gap: 1rem;
+  }
+
+  .profile-skeleton-lines {
+    padding-top: 0.4rem;
+  }
+}

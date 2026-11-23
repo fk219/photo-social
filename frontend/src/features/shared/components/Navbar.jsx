@@ -7,7 +7,7 @@ import "../nav.scss";
 const navLinkClass = ({ isActive }) => `nav-icon${isActive ? " is-active" : ""}`;
 
 const Navbar = () => {
-  const { user, handleLogout } = useAuth();
+  const { user, initializing, handleLogout } = useAuth();
   const navigate = useNavigate();
   const username = user?.username || "member";
 
@@ -47,14 +47,22 @@ const Navbar = () => {
             </svg>
           </NavLink>
 
-          {user ? (
+          {initializing ? (
+            <span className="nav-user-placeholder" aria-hidden="true" />
+          ) : user ? (
             <div className="nav-user">
-              <Avatar
-                src={getUserAvatar(user)}
-                name={username}
-                className="avatar--nav"
-              />
-              <span className="nav-user-name">@{username}</span>
+              <Link
+                to={`/u/${encodeURIComponent(username)}`}
+                className="nav-profile-link"
+                aria-label={`Your profile, @${username}`}
+              >
+                <Avatar
+                  src={getUserAvatar(user)}
+                  name={username}
+                  className="avatar--nav"
+                />
+                <span className="nav-user-name">@{username}</span>
+              </Link>
               <button
                 type="button"
                 className="logout-button"

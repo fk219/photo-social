@@ -36,3 +36,31 @@ export const formatJournalDate = (value) => {
     .replace(/\./g, "")
     .toUpperCase();
 };
+
+export const formatNoteDate = (value) => {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+    .format(date)
+    .replace(/\./g, "")
+    .toUpperCase();
+};
+
+export const formatCount = (value) => {
+  const count = Number(value);
+
+  if (!Number.isFinite(count) || count < 0) return "0";
+  if (count < 1000) return String(count);
+  if (count < 1000000) return `${(count / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+
+  return `${(count / 1000000).toFixed(1).replace(/\.0$/, "")}m`;
+};

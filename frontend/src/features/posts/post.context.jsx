@@ -7,6 +7,9 @@ export const PostContextProvider = ({ children }) => {
   const [post, setPost] = useState(null);
   const [feed, setFeed] = useState(null);
   const [feedError, setFeedError] = useState("");
+  const [nextCursor, setNextCursor] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState("");
 
   return (
     <PostContext.Provider
@@ -19,6 +22,12 @@ export const PostContextProvider = ({ children }) => {
         setFeed,
         feedError,
         setFeedError,
+        nextCursor,
+        setNextCursor,
+        loadingMore,
+        setLoadingMore,
+        loadMoreError,
+        setLoadMoreError,
       }}
     >
       {children}

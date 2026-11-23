@@ -176,6 +176,19 @@
   min-width: 0;
 }
 
+.post-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  min-height: 34px;
+  transition: color 0.2s $ease-out;
+
+  &:hover .post-author-name {
+    color: $shutter-ink;
+  }
+}
+
 .post-author-name {
   min-width: 0;
   overflow: hidden;
@@ -243,7 +256,8 @@
   gap: 0.65rem;
 }
 
-.post-like {
+.post-like,
+.post-comments-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -260,6 +274,18 @@
 
   &[aria-pressed="true"] {
     color: $shutter-ink;
+  }
+}
+
+.post-comments-toggle {
+  svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 }
 
@@ -305,6 +331,100 @@
   font-family: $font-mono;
   font-size: 0.58rem;
   line-height: 1.5;
+}
+
+.post-count {
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.post-owner-tag {
+  @include eyebrow;
+  color: $shutter-ink;
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.post-owner-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed $hairline;
+}
+
+.post-owner-confirm {
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.56rem;
+  line-height: 1.5;
+}
+
+.post-owner-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.2rem 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.2s $ease-out, border-color 0.2s $ease-out;
+
+  &:hover:not(:disabled) {
+    color: $ink;
+    border-color: currentColor;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  &.post-owner-action--danger {
+    color: $shutter-ink;
+
+    &:hover:not(:disabled) {
+      color: #8f2a13;
+    }
+  }
+}
+
+.feed-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.feed-more-error {
+  color: $shutter-ink;
+  font-family: $font-mono;
+  font-size: 0.58rem;
+  line-height: 1.55;
+}
+
+.feed-end {
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.54rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.rail-link--profile {
+  margin-top: 0.35rem;
 }
 
 .post-date {

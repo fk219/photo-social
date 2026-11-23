@@ -25,16 +25,30 @@ const FeedSkeleton = () => (
 );
 
 const Feed = () => {
-  const { user } = useAuth();
-  const { feed, feedError, handleGetFeed, loading } = usePost();
+  const { user, initializing } = useAuth();
+  const {
+    feed,
+    feedError,
+    handleGetFeed,
+    handleLoadMore,
+    loading,
+    loadingMore,
+    loadMoreError,
+    nextCursor,
+  } = usePost();
+  const username = user?.username;
 
   useEffect(() => {
+    if (initializing || !username) return;
     handleGetFeed();
-  }, []);
+  }, [handleGetFeed, initializing, username]);
 
   const posts = feed ?? [];
-  const isFirstLoad = feed === null && !feedError;
+  const isFirstLoad = Boolean(username) && feed === null && !feedError;
   const frameCount = String(posts.length).padStart(2, "0");
+  const frameLabel = nextCursor ? `${frameCount}+` : frameCount;
+  const countLabel =
+    !username || feed === null ? "Loading…" : `${frameLabel} frames`;
 
   return (
     <main className="feed-page">
@@ -47,16 +61,16 @@ const Feed = () => {
                 Recent <em>frames</em>
               </h1>
               <span className="journal-count">
-                {isFirstLoad ? "—" : `${frameCount} frames`}
+                {countLabel}
               </span>
             </div>
             <p className="journal-intro">
               A running contact sheet of photographs, posted one frame at a
-              time.
+              time. Every member&rsquo;s profile doubles as a public portfolio.
             </p>
           </header>
 
-          {isFirstLoad ? (
+          {initializing || isFirstLoad ? (
             <div className="feed-loading" role="status">
               <span className="sr-only">Loading the contact sheet…</span>
               <div className="skeleton-stack">
@@ -65,24 +79,29 @@ const Feed = () => {
                 <FeedSkeleton />
               </div>
             </div>
-          ) : feedError && posts.length === 0 ? (
-            <section
-              className="feed-message feed-message--error"
-              role="alert"
-            >
-              <p className="eyebrow">Roll unavailable</p>
-              <h2>The contact sheet didn’t load.</h2>
+          ) : !user ? (
+            <section className="feed-message" aria-labelledby="signed-out-title">
+              <p className="eyebrow">Members only</p>
+              <h2 id="signed-out-title">Open the journal.</h2>
               <p>
-                {!user
-                  ? "Sign in to open the journal and see the latest frames."
-                  : feedError}
+                Frames, notes and likes live behind a quiet sign-in. Public
+                portfolios stay open to everyone.
               </p>
               <div className="feed-message-actions">
-                {!user && (
-                  <Link to="/login" className="button primary-button">
-                    Sign in
-                  </Link>
-                )}
+                <Link to="/login" className="button primary-button">
+                  Sign in
+                </Link>
+                <Link to="/register" className="button ghost-button">
+                  Create an account
+                </Link>
+              </div>
+            </section>
+          ) : feedError && posts.length === 0 ? (
+            <section className="feed-message feed-message--error" role="alert">
+              <p className="eyebrow">Roll unavailable</p>
+              <h2>The contact sheet didn&rsquo;t load.</h2>
+              <p>{feedError}</p>
+              <div className="feed-message-actions">
                 <button
                   type="button"
                   className="button ghost-button"
@@ -106,16 +125,49 @@ const Feed = () => {
               </Link>
             </section>
           ) : (
-            <div className="posts">
-              {posts.map((post, index) => (
-                <Post
-                  key={post._id ?? index}
-                  user={post.user}
-                  post={post}
-                  index={index}
-                />
-              ))}
-            </div>
+            <>
+              <div className="posts">
+                {posts.map((item, index) => (
+                  <Post
+                    key={item._id ?? index}
+                    user={item.user}
+                    post={item}
+                    index={index}
+                  />
+                ))}
+              </div>
+
+              <div className="feed-more">
+                {loadMoreError && (
+                  <p className="feed-more-error" role="alert">
+                    {loadMoreError}
+                  </p>
+                )}
+
+                {nextCursor ? (
+                  <button
+                    type="button"
+                    className={`button ghost-button${
+                      loadingMore ? " is-loading" : ""
+                    }`}
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    aria-busy={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <>
+                        <span className="spinner" aria-hidden="true" />
+                        Loading frames…
+                      </>
+                    ) : (
+                      "Load more frames"
+                    )}
+                  </button>
+                ) : (
+                  <p className="feed-end">End of the roll · {frameCount} frames</p>
+                )}
+              </div>
+            </>
           )}
         </div>
 
@@ -137,7 +189,7 @@ const Feed = () => {
               </div>
               <div>
                 <dt>Frames</dt>
-                <dd>{isFirstLoad ? "—" : frameCount}</dd>
+                <dd>{!username || feed === null ? "Loading…" : frameLabel}</dd>
               </div>
             </dl>
 
@@ -145,9 +197,19 @@ const Feed = () => {
               <span>Add a frame</span>
               <span aria-hidden="true">→</span>
             </Link>
+
+            {user && (
+              <Link
+                to={`/u/${encodeURIComponent(user.username)}`}
+                className="rail-link rail-link--profile"
+              >
+                <span>View my profile</span>
+                <span aria-hidden="true">→</span>
+              </Link>
+            )}
           </div>
 
-          <p className="rail-colophon">Insta — a photo journal</p>
+          <p className="rail-colophon">Insta, a photo journal</p>
         </aside>
       </div>
     </main>

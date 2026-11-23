@@ -1,7 +1,11 @@
-import { useId, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
+import { Link } from "react-router-dom";
 import { usePost } from "../hooks/usePost";
+import { useAuth } from "../../auth/hooks/useAuth";
 import Avatar from "../../shared/components/Avatar";
+import CommentThread from "./CommentThread";
 import {
+  formatCount,
   formatFrameNumber,
   formatJournalDate,
   getUserAvatar,
@@ -9,27 +13,74 @@ import {
 
 const CAPTION_LIMIT = 160;
 
-const Post = ({ user, post, index = 0 }) => {
-  const { handleLike, handleUnlike } = usePost();
+const Post = ({ user: author, post, index = 0 }) => {
+  const { user: viewer } = useAuth();
+  const {
+    handleLike,
+    handleUnlike,
+    handleDeletePost,
+    patchPost,
+  } = usePost();
 
   const [imageFailed, setImageFailed] = useState(false);
+  const [imageSrc, setImageSrc] = useState(
+    post?.thumbnail_url || post?.image_url || ""
+  );
   const [expanded, setExpanded] = useState(false);
   const [liking, setLiking] = useState(false);
   const [likeError, setLikeError] = useState("");
   const [pulse, setPulse] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const captionId = useId();
+  const commentsId = useId();
 
   const frameNumber = formatFrameNumber(index);
   const postedAt = formatJournalDate(post?.createdAt);
-  const username = user?.username || "unknown";
+  const username = author?.username || "unknown";
   const caption = typeof post?.caption === "string" ? post.caption.trim() : "";
   const isLongCaption = caption.length > CAPTION_LIMIT;
   const liked = Boolean(post?.isLiked);
+  const likesCount = Number(post?.likesCount) || 0;
+  const commentsCount = Number(post?.commentsCount) || 0;
+  const isOwner =
+    Boolean(viewer?.username) &&
+    Boolean(author?.username) &&
+    viewer.username === username;
+
+  const originalImage = post?.image_url || "";
+  const thumbnailImage = post?.thumbnail_url || originalImage;
+
+  useEffect(() => {
+    setImageSrc(thumbnailImage);
+    setImageFailed(false);
+  }, [thumbnailImage]);
+
+  const updateCommentsCount = useCallback(
+    (count) => {
+      if (!post?._id) return;
+      patchPost(post._id, {
+        commentsCount: Math.max(0, Number(count) || 0),
+      });
+    },
+    [patchPost, post?._id]
+  );
 
   const photoAlt = caption
     ? `Photograph by @${username}: ${caption.slice(0, 120)}`
     : `Photograph by @${username}`;
+
+  const handleImageError = () => {
+    if (originalImage && imageSrc !== originalImage) {
+      setImageSrc(originalImage);
+      return;
+    }
+
+    setImageFailed(true);
+  };
 
   const toggleLike = async () => {
     if (liking || !post?._id) return;
@@ -52,6 +103,24 @@ const Post = ({ user, post, index = 0 }) => {
     }
   };
 
+  const removePost = async () => {
+    if (!post?._id || deleting) return;
+
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      await handleDeletePost(post._id);
+    } catch {
+      setDeleteError("This frame could not be deleted. Try again.");
+      setDeleting(false);
+    }
+  };
+
+  const authorName = (
+    <span className="post-author-name">@{username}</span>
+  );
+
   return (
     <article
       className="post"
@@ -60,16 +129,19 @@ const Post = ({ user, post, index = 0 }) => {
       <div className="post-frame-row">
         <span className="post-frame">Frame {frameNumber}</span>
         <span className="frame-rule" aria-hidden="true" />
+        {isOwner && (
+          <span className="post-owner-tag">Your frame</span>
+        )}
       </div>
 
       <div className="post-media">
-        {post?.image_url && !imageFailed ? (
+        {imageSrc && !imageFailed ? (
           <img
-            src={post.image_url}
+            src={imageSrc}
             alt={photoAlt}
             loading="lazy"
             decoding="async"
-            onError={() => setImageFailed(true)}
+            onError={handleImageError}
           />
         ) : (
           <div
@@ -90,12 +162,28 @@ const Post = ({ user, post, index = 0 }) => {
 
       <div className="post-body">
         <div className="post-author">
-          <Avatar
-            src={getUserAvatar(user)}
-            name={username}
-            className="avatar--post"
-          />
-          <span className="post-author-name">@{username}</span>
+          {author?.username ? (
+            <Link
+              to={`/u/${encodeURIComponent(username)}`}
+              className="post-author-link"
+            >
+              <Avatar
+                src={getUserAvatar(author)}
+                name={username}
+                className="avatar--post"
+              />
+              {authorName}
+            </Link>
+          ) : (
+            <span className="post-author-link">
+              <Avatar
+                src={getUserAvatar(author)}
+                name={username}
+                className="avatar--post"
+              />
+              {authorName}
+            </span>
+          )}
         </div>
 
         {caption && (
@@ -128,7 +216,11 @@ const Post = ({ user, post, index = 0 }) => {
               type="button"
               className="post-like"
               aria-pressed={liked}
-              aria-label={liked ? "Unlike this frame" : "Like this frame"}
+              aria-label={
+                liked
+                  ? `Unlike this frame, ${likesCount} likes`
+                  : `Like this frame, ${likesCount} likes`
+              }
               aria-busy={liking}
               onClick={toggleLike}
             >
@@ -144,6 +236,30 @@ const Post = ({ user, post, index = 0 }) => {
                 </svg>
               </span>
               <span className="like-label">{liked ? "Liked" : "Like"}</span>
+              {likesCount > 0 && (
+                <span className="post-count">{formatCount(likesCount)}</span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="post-comments-toggle"
+              aria-expanded={commentsOpen}
+              aria-controls={commentsId}
+              aria-label={
+                commentsOpen
+                  ? `Hide comments, ${commentsCount} comments`
+                  : `Show comments, ${commentsCount} comments`
+              }
+              onClick={() => setCommentsOpen((current) => !current)}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 12a8 8 0 0 1-8 8H6l-3 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z" />
+              </svg>
+              <span className="like-label">
+                {commentsOpen ? "Hide notes" : "Notes"}
+              </span>
+              <span className="post-count">{formatCount(commentsCount)}</span>
             </button>
 
             {likeError && (
@@ -159,6 +275,61 @@ const Post = ({ user, post, index = 0 }) => {
             </time>
           )}
         </footer>
+
+        {commentsOpen && (
+          <div id={commentsId} className="post-comments-shell">
+            <CommentThread
+              postId={post._id}
+              commentsCount={commentsCount}
+              onCountChange={updateCommentsCount}
+            />
+          </div>
+        )}
+
+        {isOwner && (
+          <div className="post-owner-row">
+            {confirmingDelete ? (
+              <>
+                <span className="post-owner-confirm">
+                  Delete this frame and its notes?
+                </span>
+                <button
+                  type="button"
+                  className="post-owner-action post-owner-action--danger"
+                  onClick={removePost}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting…" : "Delete"}
+                </button>
+                <button
+                  type="button"
+                  className="post-owner-action"
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    setDeleteError("");
+                  }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="post-owner-action"
+                onClick={() => setConfirmingDelete(true)}
+              >
+                Remove frame
+              </button>
+            )}
+
+            {deleteError && (
+              <span className="post-like-error" role="alert">
+                {deleteError}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );

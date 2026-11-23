@@ -161,6 +161,15 @@
   line-height: 1.6;
 }
 
+.studio-file-note {
+  margin-top: -0.65rem;
+  color: $graphite-deep;
+  font-family: $font-mono;
+  font-size: 0.56rem;
+  letter-spacing: 0.02em;
+  line-height: 1.65;
+}
+
 @media (max-width: 560px) {
   .create-page {
     padding-top: 1.75rem;
