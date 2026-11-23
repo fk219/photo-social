@@ -1,0 +1,26 @@
+// Photo journal design tokens
+$paper: #f4f5f2;
+$paper-deep: #ebece6;
+$ink: #12130f;
+$shutter: #e24a2b;
+$shutter-ink: #b83a1f;
+$graphite: #6f7469;
+$graphite-deep: #5f645a;
+$hairline: #d8dad2;
+$card: #ffffff;
+
+$font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+$font-body: "Manrope", "Helvetica Neue", Arial, sans-serif;
+$font-mono: "Space Mono", "SFMono-Regular", Consolas, monospace;
+
+$ease-out: cubic-bezier(0.22, 0.7, 0.3, 1);
+
+@mixin eyebrow {
+  font-family: $font-mono;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: $graphite-deep;
+}

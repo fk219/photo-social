@@ -1,0 +1,73 @@
+@use "./tokens" as *;
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 46px;
+  padding: 0.8rem 1.35rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-family: $font-mono;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+  transition: background-color 0.2s $ease-out, border-color 0.2s $ease-out,
+    color 0.2s $ease-out, transform 0.15s $ease-out;
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &.primary-button {
+    background-color: $ink;
+    border-color: $ink;
+    color: $paper;
+
+    &:hover:not(:disabled) {
+      background-color: $shutter-ink;
+      border-color: $shutter-ink;
+    }
+  }
+
+  &.ghost-button {
+    background-color: transparent;
+    border-color: $hairline;
+    color: $ink;
+
+    &:hover:not(:disabled) {
+      border-color: $ink;
+      background-color: $card;
+    }
+  }
+
+  &.is-loading:disabled {
+    opacity: 0.8;
+    cursor: wait;
+  }
+}
+
+.spinner {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spinner-rotate 0.7s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

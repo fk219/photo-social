@@ -1,0 +1,237 @@
+@use "./tokens" as *;
+@use "./button.scss";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: $paper;
+  color: $ink;
+  font-family: $font-body;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+h1,
+h2,
+h3,
+p,
+figure,
+dl,
+dd {
+  margin: 0;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background-color: $shutter;
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid $shutter;
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.eyebrow {
+  @include eyebrow;
+}
+
+.text-link {
+  font-family: $font-mono;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $ink;
+  border-bottom: 1px solid $hairline;
+  transition: color 0.2s $ease-out, border-color 0.2s $ease-out;
+
+  &:hover {
+    color: $shutter-ink;
+    border-color: currentColor;
+  }
+}
+
+// Shared form controls
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+  min-width: 0;
+
+  label {
+    font-family: $font-mono;
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: $ink;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: 0.82rem 0.85rem;
+    background-color: $paper;
+    border: 1px solid $hairline;
+    border-radius: 2px;
+    color: $ink;
+    font-family: $font-body;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    transition: border-color 0.2s $ease-out, background-color 0.2s $ease-out,
+      box-shadow 0.2s $ease-out;
+
+    &::placeholder {
+      color: #6b7065;
+    }
+
+    &:hover {
+      border-color: #c3c6bc;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $ink;
+      background-color: $card;
+      box-shadow: 0 0 0 3px rgba(226, 74, 43, 0.14);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &[aria-invalid="true"] {
+      border-color: $shutter;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 112px;
+  }
+}
+
+.field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.field-hint {
+  font-family: $font-mono;
+  font-size: 0.6rem;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  color: $graphite-deep;
+}
+
+.field-error {
+  font-family: $font-mono;
+  font-size: 0.6rem;
+  line-height: 1.5;
+  color: $shutter-ink;
+}
+
+.form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid rgba(226, 74, 43, 0.45);
+  background-color: rgba(226, 74, 43, 0.06);
+  color: #a9321b;
+  font-size: 0.78rem;
+  line-height: 1.55;
+
+  &::before {
+    content: "!";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-family: $font-mono;
+    font-size: 0.6rem;
+    font-weight: 700;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
