@@ -1,4 +1,5 @@
 const userModel = require("../models/user.model");
+const blacklistModel = require("../models/blacklist.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -186,7 +187,21 @@ const getMeController = async (req, res) => {
     res.status(200).json(publicUser(user));
 };
 
-const logoutController = (req, res) => {
+const logoutController = async (req, res) => {
+    const token = req.cookies?.token;
+
+    if (token) {
+        try {
+            await blacklistModel.updateOne(
+                { token },
+                { $setOnInsert: { token } },
+                { upsert: true }
+            );
+        } catch (error) {
+            console.error("Logout blacklist failed:", error.message);
+        }
+    }
+
     res.clearCookie("token", cookieOptions);
     res.status(200).json({ message: "Logged out successfully." });
 };
