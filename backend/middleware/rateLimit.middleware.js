@@ -14,9 +14,14 @@ const authLimiter = createLimiter({
     message: "Too many authentication attempts. Try again in a minute.",
 });
 
+const accountLimiter = createLimiter({
+    max: 5,
+    message: "Too many account requests. Try again in a minute.",
+});
+
 const postLimiter = createLimiter({
     max: 30,
     message: "Too many journal requests. Try again in a minute.",
 });
 
-module.exports = { authLimiter, postLimiter };
+module.exports = { authLimiter, accountLimiter, postLimiter };

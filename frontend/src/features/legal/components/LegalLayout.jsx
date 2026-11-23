@@ -24,7 +24,7 @@ const LegalLayout = ({ eyebrow, title, accent, intro, children }) => {
             {title} <em>{accent}</em>
           </h1>
           <p className="legal-lede">{intro}</p>
-          <p className="legal-updated">Last updated 23 November 2026</p>
+          <p className="legal-updated">Last updated 24 November 2026</p>
 
           <div className="legal-body">{children}</div>
 

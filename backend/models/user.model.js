@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: DEFAULT_PROFILE_IMAGE,
         },
+        tokenVersion: {
+            type: Number,
+            default: 0,
+        },
     },
     { timestamps: true }
 );

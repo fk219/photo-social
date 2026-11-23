@@ -46,6 +46,14 @@ The interface stays a printed contact sheet: frame numbers, date stamps, white p
 - Navbar avatar links to the signed-in member's own profile.
 - Public profiles work for signed-out visitors; the feed remains members-only.
 
+**Account settings**
+- Protected `/settings` page in the contact-sheet style, reachable from the navbar user area.
+- Account summary with username, email, bio and joined date.
+- Password change with current, new and confirm fields; every session is signed out on success.
+- JSON account export covering the account, posts, comments, likes and follow relationships in both directions, without the password hash.
+- Self-serve account deletion with a password and typed `DELETE` confirmation. Account records, posts, comments, likes, follows and the current session are removed; ImageKit image files stay at their URLs.
+- Privacy and terms links sit on the settings page and its footer.
+
 **Publishing and image pipeline**
 - Protected `/create-post` route with local preview, caption, and inline errors.
 - Browser-side resize to 1600 px and JPEG compression (~0.82 quality) before upload.
@@ -55,14 +63,15 @@ The interface stays a printed contact sheet: frame numbers, date stamps, white p
 
 **Security baseline**
 - `helmet` security headers.
-- `express-rate-limit`: 10 requests/minute per IP on auth routes, 30/minute on posts and comments.
+- `express-rate-limit`: 10 requests/minute per IP on auth routes, 5/minute on password, export and account deletion, 30/minute on posts and comments.
 - JWT in an `httpOnly`, `SameSite=Lax`, `Secure` cookie in production; bcrypt password hashing.
+- Session JWTs carry a `tokenVersion`; a password change increments it and invalidates every token issued before the change.
 - Comment and bio length validation on both client and server.
 - CORS remains restricted to the production app and local development origins.
 - `trust proxy` is set for Render/Vercel deployments.
 
 **Public pages and discovery**
-- `/privacy` and `/terms` describe what Journal stores, the processors it relies on, deletion requests, and the rules for the beta service.
+- `/privacy` and `/terms` describe what Journal stores, the processors it relies on, account export and deletion, and the rules for the beta service.
 - Both pages are linked from the login page, the feed rail, and every public profile.
 - `robots.txt`, `sitemap.xml`, a canonical URL and an Open Graph URL cover search and sharing basics.
 - Vercel Analytics runs in the app root and needs no environment variables.
@@ -92,6 +101,7 @@ frontend/
     features/auth/            session hydration, login, register
     features/posts/           feed, post card, comments, create page, context
     features/users/           public profile page
+    features/settings/        account settings, export and deletion
     features/legal/           privacy and terms pages
     features/shared/          navbar, avatar, API clients, image compression
 ```
@@ -131,7 +141,7 @@ No new environment variables are required for the MVP.
 
 ## API
 
-All routes are prefixed with `/api`. Feed, post, comment and follow routes require the auth cookie; profile reads are public.
+All routes are prefixed with `/api`. Feed, post, comment, follow and account settings routes require the auth cookie; profile reads are public.
 
 | Method | Route | Auth | Purpose |
 |---|---|---|---|
@@ -139,6 +149,9 @@ All routes are prefixed with `/api`. Feed, post, comment and follow routes requi
 | `POST` | `/auth/login` | Public | Sign in, set cookie |
 | `GET` | `/auth/get-me` | Cookie | Current user |
 | `POST` | `/auth/logout` | Cookie | Clear the auth cookie |
+| `PATCH` | `/auth/password` | Cookie | Change password (`{ currentPassword, newPassword }`) and sign out all sessions |
+| `GET` | `/auth/export` | Cookie | Download account, posts, comments, likes and follow relationships as JSON |
+| `DELETE` | `/auth/account` | Cookie | Delete account (`{ password }`), its records and current session |
 | `GET` | `/posts/feed?cursor=&limit=10` | Cookie | Cursor-paginated feed |
 | `POST` | `/posts` | Cookie | Upload a post (`multipart`, field `image`) |
 | `DELETE` | `/posts/:postId` | Cookie | Delete own frame |
@@ -159,7 +172,9 @@ Pagination responses include `nextCursor`; pass it back as `cursor` for the next
 - `Post`, `User`, and `Follow` use Mongoose timestamps. Existing documents without `createdAt` are still returned; they simply sort after dated posts and render without a date stamp.
 - `Post` keeps `likesCount` and `commentsCount` counters, while feed/profile reads compute counts with `$lookup` so older posts are accurate too.
 - `Comment` stores `post`, `user` (username), `text` (max 500), and timestamps.
+- `User` keeps `tokenVersion` (default `0`). Password changes increment it, so older JWTs are rejected by the auth middleware.
 - Deleting a frame removes its database record, likes, and comments. The ImageKit original is left in place.
+- Deleting an account removes its comments, likes, both follow directions, posts, current blacklist entry and user record. ImageKit originals are left in place.
 
 ## Deployment notes
 

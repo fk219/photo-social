@@ -5,7 +5,7 @@ const Privacy = () => (
     eyebrow="Journal / Privacy"
     title="Privacy"
     accent="notes."
-    intro="Journal keeps a small record of the people and photographs on it. This page explains what is stored, where it goes, and how to ask for it to be removed."
+    intro="Journal keeps a small record of the people and photographs on it. This page explains what is stored, where it goes, and how to export or remove it."
   >
     <section>
       <h2>
@@ -62,7 +62,9 @@ const Privacy = () => (
       <p>
         When you log out, the token is added to a blacklist in MongoDB so it
         cannot be reused. Blacklist entries are deleted automatically after 24
-        hours.
+        hours. Changing your password increments a session version on the
+        account, which immediately invalidates every token issued before the
+        change.
       </p>
     </section>
 
@@ -127,13 +129,14 @@ const Privacy = () => (
         remain available at its ImageKit URL after the frame is deleted.
       </p>
       <p>
-        There is no self-serve account deletion button at this time. Email{" "}
-        <a href="mailto:furqank219@gmail.com">furqank219@gmail.com</a> from the
-        address on the account to ask for account deletion. We will remove the
-        account record, posts, likes, comments and follows. We will also remove
-        the ImageKit files we can identify as yours, unless we need to keep a
-        record for a legal or security reason. Some copies may remain for a
-        short time in provider backups or caches.
+        You can delete your account from Settings. That removes the account
+        record, posts, comments, likes and follow relationships, and ends the
+        current session. The same page can prepare a JSON export of those
+        records. ImageKit image files are not deleted by account deletion, so
+        they may remain available at their URLs. Email{" "}
+        <a href="mailto:furqank219@gmail.com">furqank219@gmail.com</a> if you
+        need help or want to ask about files tied to a deleted account. Some
+        copies may remain for a short time in provider backups or caches.
       </p>
     </section>
 

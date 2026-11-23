@@ -1,9 +1,16 @@
 const userModel = require("../models/user.model");
 const blacklistModel = require("../models/blacklist.model");
+const postModel = require("../models/post.model");
+const commentModel = require("../models/comment.model");
+const likeModel = require("../models/like.model");
+const followModel = require("../models/follow.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const BIO_LIMIT = 160;
+const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 72;
+const DEMO_EMAIL = "demo@insta.local";
 
 const cookieOptions = {
     httpOnly: true,
@@ -18,6 +25,7 @@ const publicUser = (user) => ({
     bio: user.bio ?? "",
     profileImage: user.profile_image,
     profile_image: user.profile_image,
+    createdAt: user.createdAt,
 });
 
 const normalizeImageUrl = (value) => {
@@ -102,6 +110,7 @@ const registerController = async (req, res) => {
         {
             id: user._id,
             username: user.username,
+            tokenVersion: user.tokenVersion ?? 0,
         },
         process.env.JWT_SECRET,
         {
@@ -162,6 +171,7 @@ const loginController = async (req, res) => {
         {
             id: user._id,
             username: user.username,
+            tokenVersion: user.tokenVersion ?? 0,
         },
         process.env.JWT_SECRET,
         { expiresIn: "1d" }
@@ -206,9 +216,222 @@ const logoutController = async (req, res) => {
     res.status(200).json({ message: "Logged out successfully." });
 };
 
+const changePasswordController = async (req, res) => {
+    const { currentPassword, newPassword } = req.body ?? {};
+
+    if (typeof currentPassword !== "string" || !currentPassword) {
+        return res.status(400).json({
+            message: "Enter your current password.",
+        });
+    }
+
+    if (
+        typeof newPassword !== "string" ||
+        newPassword.length < PASSWORD_MIN ||
+        newPassword.length > PASSWORD_MAX
+    ) {
+        return res.status(400).json({
+            message: `New password must be between ${PASSWORD_MIN} and ${PASSWORD_MAX} characters.`,
+        });
+    }
+
+    const user = await userModel.findById(req.user.id).select("+password");
+
+    if (!user) {
+        return res.status(404).json({ message: "User Not Found" });
+    }
+
+    const doesPasswordMatch = await bcrypt.compare(
+        currentPassword,
+        user.password
+    );
+
+    if (!doesPasswordMatch) {
+        return res.status(401).json({
+            message: "Current password is incorrect.",
+        });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
+    await user.save();
+
+    res.clearCookie("token", cookieOptions);
+
+    return res.status(200).json({
+        message: "Password updated. All sessions were signed out.",
+    });
+};
+
+const exportAccountController = async (req, res) => {
+    const user = await userModel
+        .findById(req.user.id)
+        .select("username email bio profile_image createdAt updatedAt")
+        .lean();
+
+    if (!user) {
+        return res.status(404).json({ message: "User Not Found" });
+    }
+
+    const [posts, comments, likes, follows] = await Promise.all([
+        postModel
+            .find({ user: user._id })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        commentModel
+            .find({ user: user.username })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        likeModel
+            .find({ user: user.username })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        followModel
+            .find({
+                $or: [
+                    { follower: user.username },
+                    { followee: user.username },
+                ],
+            })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+    ]);
+
+    const following = follows.filter(
+        (follow) => follow.follower === user.username
+    );
+    const followers = follows.filter(
+        (follow) => follow.followee === user.username
+    );
+    const safeUsername =
+        user.username.replace(/[^a-z0-9_-]+/gi, "-") || "account";
+
+    res.set({
+        "Cache-Control": "no-store",
+        "Content-Disposition": `attachment; filename="journal-export-${safeUsername}.json"`,
+    });
+
+    return res.status(200).json({
+        format: "journal-account-export",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        account: {
+            id: String(user._id),
+            username: user.username,
+            email: user.email,
+            bio: user.bio ?? "",
+            profileImage: user.profile_image,
+            joinedAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        },
+        posts: posts.map((post) => ({
+            id: String(post._id),
+            caption: post.caption ?? "",
+            imageUrl: post.image_url,
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
+        })),
+        comments: comments.map((comment) => ({
+            id: String(comment._id),
+            postId: String(comment.post),
+            text: comment.text,
+            createdAt: comment.createdAt,
+        })),
+        likes: likes.map((like) => ({
+            id: String(like._id),
+            postId: String(like.post),
+            createdAt: like.createdAt,
+        })),
+        follows: {
+            following: following.map((follow) => ({
+                followee: follow.followee,
+                status: follow.status,
+                createdAt: follow.createdAt,
+            })),
+            followers: followers.map((follow) => ({
+                follower: follow.follower,
+                status: follow.status,
+                createdAt: follow.createdAt,
+            })),
+        },
+    });
+};
+
+const deleteAccountController = async (req, res) => {
+    const { password } = req.body ?? {};
+
+    if (typeof password !== "string" || !password) {
+        return res.status(400).json({
+            message: "Enter your password to delete the account.",
+        });
+    }
+
+    const user = await userModel
+        .findById(req.user.id)
+        .select("username email +password")
+        .lean();
+
+    if (!user) {
+        return res.status(404).json({ message: "User Not Found" });
+    }
+
+    if (String(user.email).toLowerCase() === DEMO_EMAIL) {
+        return res.status(403).json({
+            message: "The demo account cannot be deleted.",
+        });
+    }
+
+    const doesPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!doesPasswordMatch) {
+        return res.status(401).json({
+            message: "Password is incorrect.",
+        });
+    }
+
+    const postIds = await postModel.find({ user: user._id }).distinct("_id");
+    const token = req.cookies?.token;
+
+    await Promise.all([
+        commentModel.deleteMany({
+            $or: [
+                { user: user.username },
+                { post: { $in: postIds } },
+            ],
+        }),
+        likeModel.deleteMany({
+            $or: [
+                { user: user.username },
+                { post: { $in: postIds } },
+            ],
+        }),
+        followModel.deleteMany({
+            $or: [
+                { follower: user.username },
+                { followee: user.username },
+            ],
+        }),
+        postModel.deleteMany({ user: user._id }),
+        token
+            ? blacklistModel.deleteMany({ token })
+            : Promise.resolve(),
+    ]);
+
+    await userModel.deleteOne({ _id: user._id });
+
+    res.clearCookie("token", cookieOptions);
+
+    return res.status(200).json({
+        message: "Account deleted. All sessions were signed out.",
+    });
+};
+
 module.exports = {
     registerController,
     loginController,
     getMeController,
     logoutController,
+    changePasswordController,
+    exportAccountController,
+    deleteAccountController,
 };

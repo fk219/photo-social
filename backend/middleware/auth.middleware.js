@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const blacklistModel = require("../models/blacklist.model");
+const userModel = require("../models/user.model");
 
 const readToken = (req) => req.cookies?.token;
 
@@ -31,6 +32,20 @@ const identifyUser = async (req, res, next) => {
     try {
         const revoked = await blacklistModel.exists({ token });
         if (revoked) {
+            return res.status(401).json({
+                message: "Unauthorised Access: Session ended",
+            });
+        }
+
+        const user = await userModel
+            .findById(decoded.id)
+            .select("tokenVersion")
+            .lean();
+
+        if (
+            !user ||
+            (user.tokenVersion ?? 0) !== decoded.tokenVersion
+        ) {
             return res.status(401).json({
                 message: "Unauthorised Access: Session ended",
             });
@@ -67,7 +82,21 @@ const identifyUserOptional = async (req, res, next) => {
 
     try {
         const revoked = await blacklistModel.exists({ token });
-        req.user = revoked ? null : decoded;
+
+        if (revoked) {
+            req.user = null;
+            return next();
+        }
+
+        const user = await userModel
+            .findById(decoded.id)
+            .select("tokenVersion")
+            .lean();
+
+        req.user =
+            user && (user.tokenVersion ?? 0) === decoded.tokenVersion
+                ? decoded
+                : null;
     } catch {
         req.user = null;
     }

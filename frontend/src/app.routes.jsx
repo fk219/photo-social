@@ -6,6 +6,7 @@ import Feed from "./features/posts/pages/Feed";
 import Profile from "./features/users/pages/Profile";
 import Privacy from "./features/legal/pages/Privacy";
 import Terms from "./features/legal/pages/Terms";
+import Settings from "./features/settings/pages/Settings";
 import Navbar from "./features/shared/components/Navbar";
 import ProtectedRoute from "./features/shared/components/ProtectedRoute";
 
@@ -31,6 +32,14 @@ export const routes = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <CreatePost />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/settings",
+        element: (
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         ),
       },

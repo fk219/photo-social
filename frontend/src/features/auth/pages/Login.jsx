@@ -14,6 +14,7 @@ const Login = () => {
   const [error, setError] = useState("");
 
   const redirectTo = location.state?.from?.pathname || "/";
+  const notice = location.state?.notice;
 
   const updateField = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
@@ -59,6 +60,12 @@ const Login = () => {
           Welcome <em>back.</em>
         </h1>
         <p className="auth-lede">Sign in to keep your contact sheet close.</p>
+
+        {notice && (
+          <p className="form-notice" role="status">
+            {notice}
+          </p>
+        )}
 
         {error && (
           <p className="form-error" role="alert">

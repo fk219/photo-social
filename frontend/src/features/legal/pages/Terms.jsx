@@ -92,8 +92,8 @@ const Terms = () => (
         <span className="legal-index">06</span> Termination
       </h2>
       <p>
-        You can stop using Journal at any time and ask for your account to be
-        deleted. We may suspend or remove an account or content if it breaks
+        You can stop using Journal at any time and delete your account from
+        Settings. We may suspend or remove an account or content if it breaks
         these terms, creates risk for other people, or if we need to protect the
         service.
       </p>
