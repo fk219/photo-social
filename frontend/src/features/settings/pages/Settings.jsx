@@ -17,6 +17,7 @@ import "../style/settings.scss";
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 72;
 const DELETE_CONFIRMATION = "DELETE";
+const DEMO_EMAIL = "demo@insta.local";
 
 const downloadBlob = (blob, filename) => {
   const url = URL.createObjectURL(blob);
@@ -82,6 +83,8 @@ const Settings = () => {
   const username = user?.username ?? "";
   const joined = formatJournalDate(user?.createdAt) || "Not recorded";
   const bio = user?.bio?.trim() || "No bio yet.";
+  const isDemoAccount =
+    String(user?.email ?? "").trim().toLowerCase() === DEMO_EMAIL;
 
   const updatePasswordField = (field) => (event) => {
     setPasswordForm((current) => ({
@@ -339,140 +342,158 @@ const Settings = () => {
               </span>
               <h2 id="settings-password-title">Change password</h2>
               <span className="settings-tag">
-                {PASSWORD_MIN} to {PASSWORD_MAX} characters
+                {isDemoAccount
+                  ? "Shared demo"
+                  : `${PASSWORD_MIN} to ${PASSWORD_MAX} characters`}
               </span>
             </div>
 
-            <p className="settings-note">
-              Every current session is signed out after a password change.
-            </p>
+            {isDemoAccount ? (
+              <div className="settings-demo-note">
+                <p>
+                  The shared demo account uses a generated password to stay
+                  available to every visitor, so its password cannot be changed
+                  here. Sign in with the demo credentials to explore Journal.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="settings-note">
+                  Every current session is signed out after a password change.
+                </p>
 
-            {passwordError && (
-              <p className="form-error" role="alert">
-                {passwordError}
-              </p>
+                {passwordError && (
+                  <p className="form-error" role="alert">
+                    {passwordError}
+                  </p>
+                )}
+
+                <form
+                  className="settings-form"
+                  onSubmit={handlePasswordSubmit}
+                  noValidate
+                >
+                  <div className="field">
+                    <label htmlFor="settings-current-password">
+                      Current password
+                    </label>
+                    <input
+                      id="settings-current-password"
+                      name="currentPassword"
+                      type="password"
+                      autoComplete="current-password"
+                      value={passwordForm.currentPassword}
+                      onChange={updatePasswordField("currentPassword")}
+                      placeholder="Your current password"
+                      aria-invalid={Boolean(
+                        passwordErrors.currentPassword
+                      )}
+                      aria-describedby={
+                        passwordErrors.currentPassword
+                          ? "settings-current-password-error"
+                          : undefined
+                      }
+                      disabled={changingPassword}
+                    />
+                    {passwordErrors.currentPassword && (
+                      <p
+                        className="field-error"
+                        id="settings-current-password-error"
+                      >
+                        {passwordErrors.currentPassword}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor="settings-new-password">
+                      New password
+                    </label>
+                    <input
+                      id="settings-new-password"
+                      name="newPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      value={passwordForm.newPassword}
+                      onChange={updatePasswordField("newPassword")}
+                      placeholder="At least 8 characters"
+                      aria-invalid={Boolean(passwordErrors.newPassword)}
+                      aria-describedby={
+                        passwordErrors.newPassword
+                          ? "settings-new-password-error"
+                          : "settings-new-password-hint"
+                      }
+                      disabled={changingPassword}
+                    />
+                    {passwordErrors.newPassword ? (
+                      <p
+                        className="field-error"
+                        id="settings-new-password-error"
+                      >
+                        {passwordErrors.newPassword}
+                      </p>
+                    ) : (
+                      <p
+                        className="field-hint"
+                        id="settings-new-password-hint"
+                      >
+                        Use 8 to 72 characters.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor="settings-confirm-password">
+                      Confirm new password
+                    </label>
+                    <input
+                      id="settings-confirm-password"
+                      name="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      value={passwordForm.confirmPassword}
+                      onChange={updatePasswordField("confirmPassword")}
+                      placeholder="Repeat the new password"
+                      aria-invalid={Boolean(
+                        passwordErrors.confirmPassword
+                      )}
+                      aria-describedby={
+                        passwordErrors.confirmPassword
+                          ? "settings-confirm-password-error"
+                          : undefined
+                      }
+                      disabled={changingPassword}
+                    />
+                    {passwordErrors.confirmPassword && (
+                      <p
+                        className="field-error"
+                        id="settings-confirm-password-error"
+                      >
+                        {passwordErrors.confirmPassword}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`button primary-button settings-submit${
+                      changingPassword ? " is-loading" : ""
+                    }`}
+                    disabled={changingPassword}
+                    aria-busy={changingPassword}
+                  >
+                    {changingPassword ? (
+                      <>
+                        <span className="spinner" aria-hidden="true" />
+                        Updating password…
+                      </>
+                    ) : (
+                      "Update password"
+                    )}
+                  </button>
+                </form>
+              </>
             )}
-
-            <form
-              className="settings-form"
-              onSubmit={handlePasswordSubmit}
-              noValidate
-            >
-              <div className="field">
-                <label htmlFor="settings-current-password">
-                  Current password
-                </label>
-                <input
-                  id="settings-current-password"
-                  name="currentPassword"
-                  type="password"
-                  autoComplete="current-password"
-                  value={passwordForm.currentPassword}
-                  onChange={updatePasswordField("currentPassword")}
-                  placeholder="Your current password"
-                  aria-invalid={Boolean(passwordErrors.currentPassword)}
-                  aria-describedby={
-                    passwordErrors.currentPassword
-                      ? "settings-current-password-error"
-                      : undefined
-                  }
-                  disabled={changingPassword}
-                />
-                {passwordErrors.currentPassword && (
-                  <p
-                    className="field-error"
-                    id="settings-current-password-error"
-                  >
-                    {passwordErrors.currentPassword}
-                  </p>
-                )}
-              </div>
-
-              <div className="field">
-                <label htmlFor="settings-new-password">
-                  New password
-                </label>
-                <input
-                  id="settings-new-password"
-                  name="newPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  value={passwordForm.newPassword}
-                  onChange={updatePasswordField("newPassword")}
-                  placeholder="At least 8 characters"
-                  aria-invalid={Boolean(passwordErrors.newPassword)}
-                  aria-describedby={
-                    passwordErrors.newPassword
-                      ? "settings-new-password-error"
-                      : "settings-new-password-hint"
-                  }
-                  disabled={changingPassword}
-                />
-                {passwordErrors.newPassword ? (
-                  <p
-                    className="field-error"
-                    id="settings-new-password-error"
-                  >
-                    {passwordErrors.newPassword}
-                  </p>
-                ) : (
-                  <p
-                    className="field-hint"
-                    id="settings-new-password-hint"
-                  >
-                    Use 8 to 72 characters.
-                  </p>
-                )}
-              </div>
-
-              <div className="field">
-                <label htmlFor="settings-confirm-password">
-                  Confirm new password
-                </label>
-                <input
-                  id="settings-confirm-password"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  value={passwordForm.confirmPassword}
-                  onChange={updatePasswordField("confirmPassword")}
-                  placeholder="Repeat the new password"
-                  aria-invalid={Boolean(passwordErrors.confirmPassword)}
-                  aria-describedby={
-                    passwordErrors.confirmPassword
-                      ? "settings-confirm-password-error"
-                      : undefined
-                  }
-                  disabled={changingPassword}
-                />
-                {passwordErrors.confirmPassword && (
-                  <p
-                    className="field-error"
-                    id="settings-confirm-password-error"
-                  >
-                    {passwordErrors.confirmPassword}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className={`button primary-button settings-submit${
-                  changingPassword ? " is-loading" : ""
-                }`}
-                disabled={changingPassword}
-                aria-busy={changingPassword}
-              >
-                {changingPassword ? (
-                  <>
-                    <span className="spinner" aria-hidden="true" />
-                    Updating password…
-                  </>
-                ) : (
-                  "Update password"
-                )}
-              </button>
-            </form>
           </section>
 
           <section
@@ -544,125 +565,144 @@ const Settings = () => {
                 04
               </span>
               <h2 id="settings-danger-title">Danger zone</h2>
-              <span className="settings-tag">Permanent</span>
+              <span className="settings-tag">
+                {isDemoAccount ? "Protected" : "Permanent"}
+              </span>
             </div>
 
-            <div
-              className="settings-danger-intro"
-              id="settings-danger-warning"
-            >
-              <p>
-                Deleting your account removes your profile, posts, comments,
-                likes and follow relationships from Journal. Your sessions end
-                immediately. This cannot be undone.
-              </p>
-              <p>
-                Image files stored in ImageKit are not deleted. They may remain
-                available at their URLs.
-              </p>
-            </div>
-
-            {deleteError && (
-              <p className="form-error" role="alert">
-                {deleteError}
-              </p>
-            )}
-
-            <form
-              className="settings-form settings-delete-form"
-              onSubmit={handleDeleteSubmit}
-              aria-describedby="settings-danger-warning"
-              noValidate
-            >
-              <div className="settings-delete-fields">
-                <div className="field">
-                  <label htmlFor="settings-delete-password">
-                    Password
-                  </label>
-                  <input
-                    id="settings-delete-password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    value={deleteForm.password}
-                    onChange={updateDeleteField("password")}
-                    placeholder="Confirm with your password"
-                    aria-invalid={Boolean(deleteErrors.password)}
-                    aria-describedby={
-                      deleteErrors.password
-                        ? "settings-delete-password-error"
-                        : undefined
-                    }
-                    disabled={deleting}
-                  />
-                  {deleteErrors.password && (
-                    <p
-                      className="field-error"
-                      id="settings-delete-password-error"
-                    >
-                      {deleteErrors.password}
-                    </p>
-                  )}
-                </div>
-
-                <div className="field">
-                  <label htmlFor="settings-delete-confirmation">
-                    Type DELETE to confirm
-                  </label>
-                  <input
-                    id="settings-delete-confirmation"
-                    name="confirmation"
-                    type="text"
-                    autoComplete="off"
-                    autoCapitalize="characters"
-                    spellCheck={false}
-                    value={deleteForm.confirmation}
-                    onChange={updateDeleteField("confirmation")}
-                    placeholder="DELETE"
-                    aria-invalid={Boolean(deleteErrors.confirmation)}
-                    aria-describedby={
-                      deleteErrors.confirmation
-                        ? "settings-delete-confirmation-error"
-                        : "settings-delete-confirmation-hint"
-                    }
-                    disabled={deleting}
-                  />
-                  {deleteErrors.confirmation ? (
-                    <p
-                      className="field-error"
-                      id="settings-delete-confirmation-error"
-                    >
-                      {deleteErrors.confirmation}
-                    </p>
-                  ) : (
-                    <p
-                      className="field-hint"
-                      id="settings-delete-confirmation-hint"
-                    >
-                      This must be the word DELETE in capitals.
-                    </p>
-                  )}
-                </div>
+            {isDemoAccount ? (
+              <div className="settings-demo-note settings-demo-note--danger">
+                <p>
+                  The shared demo account cannot be deleted, so its records stay
+                  in place for other visitors. Create your own account to try
+                  account deletion.
+                </p>
+                <Link to="/register" className="text-link">
+                  Create your own account
+                </Link>
               </div>
+            ) : (
+              <>
+                <div
+                  className="settings-danger-intro"
+                  id="settings-danger-warning"
+                >
+                  <p>
+                    Deleting your account removes your profile, posts,
+                    comments, likes and follow relationships from Journal. Your
+                    sessions end immediately. This cannot be undone.
+                  </p>
+                  <p>
+                    Image files stored in ImageKit are not deleted. They may
+                    remain available at their URLs.
+                  </p>
+                </div>
 
-              <button
-                type="submit"
-                className={`button primary-button settings-danger-button${
-                  deleting ? " is-loading" : ""
-                }`}
-                disabled={deleting}
-                aria-busy={deleting}
-              >
-                {deleting ? (
-                  <>
-                    <span className="spinner" aria-hidden="true" />
-                    Deleting account…
-                  </>
-                ) : (
-                  "Delete account"
+                {deleteError && (
+                  <p className="form-error" role="alert">
+                    {deleteError}
+                  </p>
                 )}
-              </button>
-            </form>
+
+                <form
+                  className="settings-form settings-delete-form"
+                  onSubmit={handleDeleteSubmit}
+                  aria-describedby="settings-danger-warning"
+                  noValidate
+                >
+                  <div className="settings-delete-fields">
+                    <div className="field">
+                      <label htmlFor="settings-delete-password">
+                        Password
+                      </label>
+                      <input
+                        id="settings-delete-password"
+                        name="password"
+                        type="password"
+                        autoComplete="current-password"
+                        value={deleteForm.password}
+                        onChange={updateDeleteField("password")}
+                        placeholder="Confirm with your password"
+                        aria-invalid={Boolean(deleteErrors.password)}
+                        aria-describedby={
+                          deleteErrors.password
+                            ? "settings-delete-password-error"
+                            : undefined
+                        }
+                        disabled={deleting}
+                      />
+                      {deleteErrors.password && (
+                        <p
+                          className="field-error"
+                          id="settings-delete-password-error"
+                        >
+                          {deleteErrors.password}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="field">
+                      <label htmlFor="settings-delete-confirmation">
+                        Type DELETE to confirm
+                      </label>
+                      <input
+                        id="settings-delete-confirmation"
+                        name="confirmation"
+                        type="text"
+                        autoComplete="off"
+                        autoCapitalize="characters"
+                        spellCheck={false}
+                        value={deleteForm.confirmation}
+                        onChange={updateDeleteField("confirmation")}
+                        placeholder="DELETE"
+                        aria-invalid={Boolean(
+                          deleteErrors.confirmation
+                        )}
+                        aria-describedby={
+                          deleteErrors.confirmation
+                            ? "settings-delete-confirmation-error"
+                            : "settings-delete-confirmation-hint"
+                        }
+                        disabled={deleting}
+                      />
+                      {deleteErrors.confirmation ? (
+                        <p
+                          className="field-error"
+                          id="settings-delete-confirmation-error"
+                        >
+                          {deleteErrors.confirmation}
+                        </p>
+                      ) : (
+                        <p
+                          className="field-hint"
+                          id="settings-delete-confirmation-hint"
+                        >
+                          This must be the word DELETE in capitals.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`button primary-button settings-danger-button${
+                      deleting ? " is-loading" : ""
+                    }`}
+                    disabled={deleting}
+                    aria-busy={deleting}
+                  >
+                    {deleting ? (
+                      <>
+                        <span className="spinner" aria-hidden="true" />
+                        Deleting account…
+                      </>
+                    ) : (
+                      "Delete account"
+                    )}
+                  </button>
+                </form>
+              </>
+            )}
           </section>
         </div>
 
