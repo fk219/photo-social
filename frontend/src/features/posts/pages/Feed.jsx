@@ -195,7 +195,6 @@ const Feed = () => {
 
             <Link to="/create-post" className="rail-link">
               <span>Add a frame</span>
-              <span aria-hidden="true">→</span>
             </Link>
 
             {user && (
@@ -204,7 +203,6 @@ const Feed = () => {
                 className="rail-link rail-link--profile"
               >
                 <span>View my profile</span>
-                <span aria-hidden="true">→</span>
               </Link>
             )}
           </div>
