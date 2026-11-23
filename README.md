@@ -5,6 +5,8 @@ A photo journal with a public portfolio side: dated frames, captions, comments, 
 **Live app:** https://insta-clone.furqankhan.dev
 **API:** https://insta-clone-backend-n518.onrender.com
 
+**Demo account:** `demo_journal` / `DemoJournal2026!` (shared; the feed also contains older test frames)
+
 ![Journal](docs/preview.png)
 
 ![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
