@@ -4,7 +4,6 @@ import { usePost } from "../hooks/usePost";
 import { useAuth } from "../../auth/hooks/useAuth";
 import Avatar from "../../shared/components/Avatar";
 import CommentThread from "./CommentThread";
-import { subscribeToThreads } from "../threadBus";
 import {
   formatCount,
   formatFullDate,
@@ -12,14 +11,17 @@ import {
   getUserAvatar,
 } from "../../shared/utils/format";
 
-const TAKE_LIMIT = 200;
+const CAPTION_LIMIT = 200;
 const SHARE_STATUS_MS = 2600;
 
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
-const Post = ({ post, index = 0 }) => {
+const Post = ({
+  post,
+  index = 0,
+  variant = "feed",
+  initialCommentsOpen = false,
+  onPostUpdate,
+  onDeleted,
+}) => {
   const { user: viewer } = useAuth();
   const { handleLike, handleUnlike, handleDeletePost, patchPost } = usePost();
   const navigate = useNavigate();
@@ -35,6 +37,12 @@ const Post = ({ post, index = 0 }) => {
   const isOwner =
     Boolean(viewer?.username) && viewer.username === author?.username;
   const likesLabel =
+    likesCount === 0
+      ? "No likes yet"
+      : likesCount === 1
+        ? "1 like"
+        : `${formatCount(likesCount)} likes`;
+  const likesAria =
     likesCount === 1 ? "1 like" : `${formatCount(likesCount)} likes`;
 
   const [imageSrc, setImageSrc] = useState(
@@ -42,7 +50,7 @@ const Post = ({ post, index = 0 }) => {
   );
   const [imageFailed, setImageFailed] = useState(false);
   const [takeExpanded, setTakeExpanded] = useState(false);
-  const [threadOpen, setThreadOpen] = useState(false);
+  const [threadOpen, setThreadOpen] = useState(initialCommentsOpen);
   const [threadPreview, setThreadPreview] = useState(null);
   const [focusRequest, setFocusRequest] = useState(0);
   const [liking, setLiking] = useState(false);
@@ -67,7 +75,7 @@ const Post = ({ post, index = 0 }) => {
   const thumbnailImage = post?.thumbnail_url || originalImage;
   const postedAt = formatRelativeTime(post?.createdAt);
   const fullDate = formatFullDate(post?.createdAt);
-  const isLongTake = caption.length > TAKE_LIMIT;
+  const isLongTake = caption.length > CAPTION_LIMIT;
   const previewReplies =
     threadPreview ?? (Array.isArray(post?.recentComments)
       ? post.recentComments
@@ -87,42 +95,23 @@ const Post = ({ post, index = 0 }) => {
 
   const handleCountChange = useCallback(
     (count) => {
-      patchPost(postId, {
-        commentsCount: Math.max(0, Number(count) || 0),
-      });
+      const nextCount = Math.max(0, Number(count) || 0);
+
+      patchPost(postId, { commentsCount: nextCount });
+      onPostUpdate?.({ commentsCount: nextCount });
     },
-    [patchPost, postId]
+    [onPostUpdate, patchPost, postId]
   );
 
-  const handleCommentsChange = useCallback((rows) => {
-    setThreadPreview(Array.isArray(rows) ? rows.slice(0, 2) : []);
-  }, []);
+  const handleCommentsChange = useCallback(
+    (rows) => {
+      const preview = Array.isArray(rows) ? rows.slice(0, 2) : [];
 
-  useEffect(() => {
-    let timer;
-
-    const unsubscribe = subscribeToThreads((requestedId) => {
-      if (requestedId !== postId) return;
-
-      threadTriggerRef.current = "comment";
-      focusThreadRef.current = false;
-      setFocusRequest(0);
-      setThreadOpen(true);
-      timer = window.setTimeout(() => {
-        document
-          .getElementById(`post-${postId}`)
-          ?.scrollIntoView({
-            behavior: prefersReducedMotion() ? "auto" : "smooth",
-            block: "center",
-          });
-      }, 90);
-    });
-
-    return () => {
-      unsubscribe();
-      if (timer) window.clearTimeout(timer);
-    };
-  }, [postId]);
+      setThreadPreview(preview);
+      onPostUpdate?.({ recentComments: preview });
+    },
+    [onPostUpdate]
+  );
 
   const openThread = (trigger = "comment") => {
     threadTriggerRef.current = trigger;
@@ -203,16 +192,32 @@ const Post = ({ post, index = 0 }) => {
     setLikeError("");
     setPulse(false);
     patchPost(postId, { isLiked: nextLiked, likesCount: nextCount });
+    onPostUpdate?.({ isLiked: nextLiked, likesCount: nextCount });
 
     try {
       if (nextLiked) {
-        await handleLike(postId);
+        const data = await handleLike(postId);
+
+        if (typeof data?.likesCount === "number") {
+          onPostUpdate?.({
+            isLiked: true,
+            likesCount: data.likesCount,
+          });
+        }
         setPulse(true);
       } else {
-        await handleUnlike(postId);
+        const data = await handleUnlike(postId);
+
+        if (typeof data?.likesCount === "number") {
+          onPostUpdate?.({
+            isLiked: false,
+            likesCount: data.likesCount,
+          });
+        }
       }
     } catch {
       patchPost(postId, previous);
+      onPostUpdate?.(previous);
       setLikeError("That like could not be saved. Try again.");
     } finally {
       setLiking(false);
@@ -253,21 +258,22 @@ const Post = ({ post, index = 0 }) => {
 
     try {
       await handleDeletePost(postId);
+      onDeleted?.();
     } catch {
-      setDeleteError("This frame could not be deleted. Try again.");
+      setDeleteError("This post could not be deleted. Try again.");
       setDeleting(false);
     }
   };
 
   const photoAlt = caption
-    ? `Photograph by @${username}: ${caption.slice(0, 120)}`
-    : `Photograph by @${username}`;
+    ? `Photo by @${username}: ${caption.slice(0, 120)}`
+    : `Photo by @${username}`;
 
   return (
     <article
       id={`post-${postId}`}
-      className="post"
-      aria-label={`Frame by @${username}`}
+      className={`post${variant === "modal" ? " post--modal" : ""}`}
+      aria-label={`Post by @${username}`}
       style={{ "--post-delay": `${Math.min(index, 4) * 60}ms` }}
     >
       <div className="post-card">
@@ -295,7 +301,7 @@ const Post = ({ post, index = 0 }) => {
             </span>
           </Link>
 
-          {isOwner && <span className="post-owner-tag">Your frame</span>}
+          {isOwner && <span className="post-owner-tag">Your post</span>}
         </header>
 
         <div className="post-media">
@@ -311,20 +317,20 @@ const Post = ({ post, index = 0 }) => {
             <div
               className="photo-fallback"
               role="img"
-              aria-label={`The photograph by @${username} is unavailable`}
+              aria-label={`The photo by @${username} is unavailable`}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="3" y="6" width="18" height="14" rx="1.5" />
                 <circle cx="12" cy="13" r="3.2" />
                 <path d="m8 6 1.4-2h5.2L16 6" />
               </svg>
-              <span>Photograph unavailable</span>
+              <span>Photo unavailable</span>
             </div>
           )}
         </div>
 
         <div className="post-body">
-          <div className="post-actions" role="group" aria-label="Frame actions">
+          <div className="post-actions" role="group" aria-label="Post actions">
             <button
               type="button"
               className={`post-action post-action--like${
@@ -334,9 +340,9 @@ const Post = ({ post, index = 0 }) => {
               aria-label={
                 viewer
                   ? liked
-                    ? `Unlike this frame, ${likesCount} likes`
-                    : `Like this frame, ${likesCount} likes`
-                  : "Sign in to like this frame"
+                    ? `Unlike this post, ${likesAria}`
+                    : `Like this post, ${likesAria}`
+                  : "Sign in to like this post"
               }
               aria-busy={liking}
               onClick={toggleLike}
@@ -362,12 +368,12 @@ const Post = ({ post, index = 0 }) => {
               aria-controls={threadOpen ? threadId : undefined}
               aria-label={
                 threadOpen
-                  ? "Hide replies"
+                  ? "Hide comments"
                   : commentsCount > 0
                     ? `Open ${commentsCount} ${
-                        commentsCount === 1 ? "reply" : "replies"
+                        commentsCount === 1 ? "comment" : "comments"
                       }`
-                    : "Open the reply thread"
+                    : "Open comments"
               }
               onClick={toggleThread}
             >
@@ -385,7 +391,7 @@ const Post = ({ post, index = 0 }) => {
                     ? " is-error"
                     : ""
               }`}
-              aria-label="Copy link to this frame"
+              aria-label="Copy link to this post"
               onClick={shareFrame}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -453,7 +459,7 @@ const Post = ({ post, index = 0 }) => {
           {!threadOpen && (
             <section
               className="post-reply-preview"
-              aria-label="Reply preview"
+              aria-label="Comment preview"
             >
               {previewReplies.length > 0 ? (
                 <ul className="post-reply-list">
@@ -491,7 +497,7 @@ const Post = ({ post, index = 0 }) => {
                 </ul>
               ) : (
                 <p className="post-reply-empty">
-                  No replies yet. Start the thread.
+                  No comments yet. Start the conversation.
                 </p>
               )}
 
@@ -504,7 +510,7 @@ const Post = ({ post, index = 0 }) => {
                     onClick={() => openThread("view-all")}
                   >
                     View all {formatCount(commentsCount)}{" "}
-                    {commentsCount === 1 ? "reply" : "replies"}
+                    {commentsCount === 1 ? "comment" : "comments"}
                   </button>
                 )}
                 <button
@@ -513,7 +519,7 @@ const Post = ({ post, index = 0 }) => {
                   className="post-reply-write"
                   onClick={openReply}
                 >
-                  Reply
+                  Comment
                 </button>
               </div>
             </section>
@@ -534,7 +540,7 @@ const Post = ({ post, index = 0 }) => {
                 className="quiet-button post-delete"
                 onClick={() => setConfirmingDelete(true)}
               >
-                Delete frame
+                Delete post
               </button>
             )}
           </div>
@@ -542,7 +548,7 @@ const Post = ({ post, index = 0 }) => {
           {isOwner && confirmingDelete && (
             <div className="post-owner">
               <span className="post-owner-confirm">
-                Delete this frame and its replies?
+                Delete this post and its comments?
               </span>
               <button
                 type="button"
@@ -550,7 +556,7 @@ const Post = ({ post, index = 0 }) => {
                 onClick={removePost}
                 disabled={deleting}
               >
-                {deleting ? "Deleting..." : "Delete frame"}
+                {deleting ? "Deleting..." : "Delete post"}
               </button>
               <button
                 type="button"
@@ -578,11 +584,11 @@ const Post = ({ post, index = 0 }) => {
         <section
           id={threadId}
           className="post-thread is-open"
-          aria-label={`Replies to @${username}`}
+          aria-label={`Comments on @${username}'s post`}
         >
           <header className="post-thread-head">
             <p className="post-thread-label">
-              Replies <span>{formatCount(commentsCount)}</span>
+              Comments <span>{formatCount(commentsCount)}</span>
             </p>
             <button
               type="button"

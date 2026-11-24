@@ -68,11 +68,11 @@ export const compressImage = async (file) => {
   const context = canvas.getContext("2d");
 
   if (!context) {
-    throw new Error("This browser could not resize the photograph.");
+    throw new Error("This browser could not resize the photo.");
   }
 
-  // JPEG has no alpha channel; fill with gallery paper instead of black.
-  context.fillStyle = "#F6EFE3";
+  // JPEG has no alpha channel; fill with white instead of black.
+  context.fillStyle = "#FFFFFF";
   context.fillRect(0, 0, width, height);
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
@@ -81,18 +81,18 @@ export const compressImage = async (file) => {
   const blob = await canvasToBlob(canvas);
 
   if (!blob) {
-    throw new Error("This photograph could not be compressed.");
+    throw new Error("This photo could not be compressed.");
   }
 
   if (blob.size > MAX_UPLOAD_BYTES) {
     throw new Error(
-      "This photograph is still over 5 MB after compression. Choose a smaller file."
+      "This photo is still over 5 MB after compression. Choose a smaller file."
     );
   }
 
-  const baseName = (file.name || "frame").replace(/\.[^.]+$/, "");
+  const baseName = (file.name || "mosaic").replace(/\.[^.]+$/, "");
 
-  return new File([blob], `${baseName || "frame"}.jpg`, {
+  return new File([blob], `${baseName || "mosaic"}.jpg`, {
     type: "image/jpeg",
     lastModified: Date.now(),
   });

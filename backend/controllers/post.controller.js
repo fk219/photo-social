@@ -70,7 +70,7 @@ const createPostController = async (req, res) => {
             : req.file.mimetype === "image/webp"
               ? ".webp"
               : ".jpg";
-    const uploadName = `frame-${Date.now()}-${Math.random()
+    const uploadName = `post-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2, 8)}${extension}`;
 
@@ -198,7 +198,7 @@ const getFeedController = async (req, res) => {
             follower: viewerUsername,
             status: { $ne: "rejected" },
         });
-        // A member's own frames belong in their home feed alongside the
+        // A member's own posts belong in their home feed alongside the
         // accounts they follow.
         const usernames = [...new Set([...followees, viewerUsername])];
         const authorIds = await userModel.distinct("_id", {
@@ -338,7 +338,7 @@ const deletePostController = async (req, res) => {
 
     if (post.user.toString() !== req.user.id) {
         return res.status(403).json({
-            message: "You can only delete your own frames.",
+            message: "You can only delete your own posts.",
         });
     }
 
@@ -349,7 +349,7 @@ const deletePostController = async (req, res) => {
     ]);
 
     return res.status(200).json({
-        message: "Frame deleted.",
+        message: "Post deleted.",
         postId,
     });
 };

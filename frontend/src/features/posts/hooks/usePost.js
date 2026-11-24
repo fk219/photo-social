@@ -168,7 +168,7 @@ export const usePost = () => {
           loadingMore: false,
           loadMoreError: getErrorMessage(
             err,
-            "More frames could not be loaded."
+            "More posts could not be loaded."
           ),
         }));
       }

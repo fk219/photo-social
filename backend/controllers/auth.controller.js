@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 const BIO_LIMIT = 160;
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 72;
-const DEMO_EMAIL = "demo@insta.local";
+const DEMO_EMAIL = "demo@mosaic.local";
 
 const cookieOptions = {
     httpOnly: true,

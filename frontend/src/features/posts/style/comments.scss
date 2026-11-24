@@ -3,57 +3,50 @@
 .thread {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 4px;
   min-width: 0;
-  padding-top: 0.15rem;
-}
-
-.reply-list {
-  position: relative;
-  list-style: none;
-  margin-top: 0.25rem;
+  padding-top: 2px;
 }
 
 .reply-composer {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.6rem;
-  padding: 0.75rem;
-  background-color: $gallery-soft;
-  border: 1px solid $gallery-line;
-  border-radius: 3px;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid $line-soft;
 
   textarea {
     width: 100%;
-    min-height: 78px;
-    padding: 0.6rem 0.65rem;
-    background-color: #fffaf1;
-    border: 1px solid $gallery-line-strong;
-    border-radius: 2px;
-    color: $gallery-ink;
-    font-family: $font-body;
-    font-size: 0.86rem;
-    line-height: 1.55;
+    min-height: 68px;
+    padding: 9px 10px;
+    background-color: $surface;
+    border: 1px solid $line;
+    border-radius: $radius-control;
+    color: $ink;
+    font-family: $font-ui;
+    font-size: 13px;
+    line-height: 1.5;
     resize: vertical;
     transition: border-color 0.2s $ease-out, box-shadow 0.2s $ease-out;
 
     &::placeholder {
-      color: #6b6457;
+      color: #8e8e8e;
     }
 
     &:hover {
-      border-color: rgba(22, 19, 13, 0.5);
+      border-color: #b8b8b8;
     }
 
     &:focus {
       outline: none;
-      border-color: $cobalt-deep;
-      box-shadow: 0 0 0 3px rgba(29, 62, 207, 0.16);
+      border-color: $blue;
+      box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.16);
     }
 
     &:disabled {
-      opacity: 0.65;
+      background-color: $surface-soft;
+      opacity: 0.7;
       cursor: not-allowed;
     }
   }
@@ -63,47 +56,43 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 12px;
 }
 
 .reply-count {
-  color: $gallery-muted;
-  font-size: 0.66rem;
+  color: $muted;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.03em;
 }
 
 .reply-signin {
-  margin-top: 0.5rem;
-  padding-top: 0.7rem;
-  border-top: 1px dashed $gallery-line;
-  color: $gallery-muted;
-  font-size: 0.82rem;
-  line-height: 1.55;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid $line-soft;
+  color: $muted;
+  font-size: 13px;
+  line-height: 1.5;
 
   a {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    color: $cobalt-deep;
+    color: $blue-ink;
     font-weight: 600;
-    text-decoration: underline;
-    text-decoration-color: rgba(29, 62, 207, 0.35);
-    text-underline-offset: 3px;
 
     &:hover {
-      color: $vermilion-deep;
-      text-decoration-color: currentColor;
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
   }
 }
 
 @media (max-width: 560px) {
   .reply-composer {
-    padding: 0.65rem;
+    padding-top: 10px;
   }
 
   .reply-composer-row {
-    gap: 0.6rem;
+    gap: 10px;
   }
 }

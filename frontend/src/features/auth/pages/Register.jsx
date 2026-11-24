@@ -72,52 +72,15 @@ const Register = () => {
   return (
     <main className="auth-page" id="main-content">
       <div className="auth-shell">
-        <section className="auth-stage" aria-label="About Mosaic">
-          <Link to="/explore" className="auth-wordmark">
-            Mosaic
-          </Link>
-
-          <div className="auth-stage-copy">
-            <p className="eyebrow">Image-first conversations</p>
-            <p className="auth-display">
-              Work worth a <em>second look.</em>
-            </p>
-            <p className="auth-stage-lede">
-              Post the frame, write the take, and let the people who care about
-              images answer in a thread that stays attached to the work.
-            </p>
-          </div>
-
-          <ol className="auth-loop">
-            <li>
-              <span>01</span>
-              <strong>Post a frame</strong>
-              <p>One photograph and the take behind it.</p>
-            </li>
-            <li>
-              <span>02</span>
-              <strong>Follow the thread</strong>
-              <p>Replies arrive as a conversation, not a comment pile.</p>
-            </li>
-            <li>
-              <span>03</span>
-              <strong>Build a portfolio</strong>
-              <p>Every profile is a public body of work.</p>
-            </li>
-          </ol>
-        </section>
+        <Link to="/" className="auth-brand" aria-label="Mosaic home">
+          Mosaic
+        </Link>
 
         <section className="auth-card" aria-labelledby="register-title">
-          <div className="auth-meta">
-            <span>Mosaic / Join</span>
-            <span>New account</span>
-          </div>
-
-          <h1 id="register-title">
-            Start your <em>mosaic.</em>
-          </h1>
+          <h1 id="register-title">Create account</h1>
           <p className="auth-lede">
-            One username, one email, and a place for your first frame.
+            Choose a username and email to start sharing photos and joining
+            conversations.
           </p>
 
           {error && (
@@ -221,18 +184,24 @@ const Register = () => {
             </button>
           </form>
 
-          <p className="auth-switch">
-            Already part of Mosaic?{" "}
-            <Link to="/login" state={location.state}>
-              Sign in
-            </Link>
+          <p className="auth-terms">
+            By creating an account, you agree to the{" "}
+            <Link to="/terms">Terms</Link> and the{" "}
+            <Link to="/privacy">Privacy policy</Link>.
           </p>
-
-          <nav className="auth-legal" aria-label="Legal">
-            <Link to="/privacy">Privacy</Link>
-            <Link to="/terms">Terms</Link>
-          </nav>
         </section>
+
+        <p className="auth-switch">
+          Already have an account?{" "}
+          <Link to="/login" state={location.state}>
+            Sign in
+          </Link>
+        </p>
+
+        <nav className="auth-legal" aria-label="Legal">
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+        </nav>
       </div>
     </main>
   );

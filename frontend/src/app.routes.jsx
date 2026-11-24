@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet, useLocation } from "react-router-dom";
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
 import CreatePost from "./features/posts/pages/CreatePost";
@@ -10,17 +10,22 @@ import Settings from "./features/settings/pages/Settings";
 import Navbar from "./features/shared/components/Navbar";
 import ProtectedRoute from "./features/shared/components/ProtectedRoute";
 
-const Layout = () => (
-  <>
-    <a className="skip-link" href="#main-content">
-      Skip to content
-    </a>
-    <Navbar />
-    <div className="app-body">
-      <Outlet />
-    </div>
-  </>
-);
+const Layout = () => {
+  const location = useLocation();
+  const bare = location.pathname === "/login" || location.pathname === "/register";
+
+  return (
+    <>
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      {!bare && <Navbar />}
+      <div className={`app-body${bare ? " app-body--bare" : ""}`}>
+        <Outlet />
+      </div>
+    </>
+  );
+};
 
 export const routes = createBrowserRouter([
   {

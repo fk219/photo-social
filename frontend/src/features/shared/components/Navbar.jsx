@@ -1,7 +1,5 @@
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
-import { getUserAvatar } from "../utils/format";
-import Avatar from "./Avatar";
 import "../nav.scss";
 
 const paths = {
@@ -14,7 +12,7 @@ const paths = {
   ),
   create: (
     <>
-      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <rect x="4" y="4" width="16" height="16" rx="3" />
       <path d="M12 8.2v7.6M8.2 12h7.6" />
     </>
   ),
@@ -47,162 +45,163 @@ const NavIcon = ({ name }) => (
 const Navbar = () => {
   const { user, initializing, handleLogout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const username = user?.username || "";
-  const onLoginPage = location.pathname === "/login";
-  const guestAction = onLoginPage
-    ? { to: "/register", label: "Join" }
-    : { to: "/login", label: "Sign in" };
 
   const onLogout = () => {
     handleLogout();
     navigate("/login", { replace: true });
   };
 
-  const links = [
+  const baseLinks = [
     { to: "/", label: "Home", icon: "home", end: true },
     { to: "/explore", label: "Explore", icon: "explore" },
-    {
-      to: "/create-post",
-      label: "Create",
-      icon: "create",
-      emphasis: true,
-    },
-    ...(user
-      ? [
-          {
-            to: `/u/${encodeURIComponent(username)}`,
-            label: "Profile",
-            icon: "profile",
-          },
-          {
-            to: "/settings",
-            label: "Settings",
-            icon: "settings",
-          },
-        ]
-      : []),
+    { to: "/create-post", label: "Create", icon: "create" },
   ];
+
+  const navLinks = user
+    ? [
+        ...baseLinks,
+        {
+          to: `/u/${encodeURIComponent(username)}`,
+          label: "Profile",
+          icon: "profile",
+        },
+        { to: "/settings", label: "Settings", icon: "settings" },
+      ]
+    : baseLinks;
+
+  const dockLinks = user
+    ? [
+        ...baseLinks,
+        {
+          to: `/u/${encodeURIComponent(username)}`,
+          label: "Profile",
+          icon: "profile",
+        },
+      ]
+    : initializing
+      ? baseLinks
+      : [
+          { to: "/", label: "Home", icon: "home", end: true },
+          { to: "/explore", label: "Explore", icon: "explore" },
+          { to: "/login", label: "Sign in", icon: "profile" },
+          { to: "/register", label: "Join", icon: "create" },
+        ];
 
   return (
     <>
-      <aside className="app-rail" aria-label="Mosaic">
-        <Link to="/" className="rail-brand" aria-label="Mosaic home">
-          <span className="rail-monogram" aria-hidden="true">
-            M
-          </span>
-          <span className="rail-word">Mosaic</span>
-        </Link>
+      <header className="topbar">
+        <div className="topbar-inner">
+          <Link to="/" className="brand-wordmark" aria-label="Mosaic home">
+            Mosaic
+          </Link>
 
-        <nav className="rail-nav" aria-label="Primary">
-          {links.map((link) => (
-            <NavLink
-              key={link.label}
-              to={link.to}
-              end={link.end}
-              className={({ isActive }) =>
-                `rail-link${isActive ? " is-active" : ""}${
-                  link.emphasis ? " rail-link--create" : ""
-                }`
-              }
-            >
-              <NavIcon name={link.icon} />
-              <span>{link.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="rail-foot">
-          {initializing ? (
-            <span className="rail-avatar-placeholder" aria-hidden="true" />
-          ) : user ? (
-            <>
-              <Link
-                to={`/u/${encodeURIComponent(username)}`}
-                className="rail-viewer"
-                aria-label={`Your portfolio, @${username}`}
+          <nav className="topbar-nav" aria-label="Primary">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.label}
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) =>
+                  `topbar-link${isActive ? " is-active" : ""}`
+                }
               >
-                <Avatar
-                  src={getUserAvatar(user)}
-                  name={username}
-                  className="avatar--rail"
-                />
-                <span>@{username}</span>
-              </Link>
+                <NavIcon name={link.icon} />
+                <span>{link.label}</span>
+              </NavLink>
+            ))}
+
+            {initializing ? (
+              <span className="topbar-loading" aria-hidden="true" />
+            ) : user ? (
               <button
                 type="button"
-                className="rail-logout"
+                className="topbar-link topbar-signout"
                 onClick={onLogout}
-                aria-label="Log out"
               >
                 <NavIcon name="logout" />
-                <span>Log out</span>
+                <span>Sign out</span>
               </button>
-            </>
-          ) : (
-            <Link to={guestAction.to} className="rail-signin">
-              {guestAction.label}
-            </Link>
-          )}
+            ) : (
+              <>
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) =>
+                    `topbar-link${isActive ? " is-active" : ""}`
+                  }
+                >
+                  <span>Sign in</span>
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className={({ isActive }) =>
+                    `topbar-link topbar-link--join${
+                      isActive ? " is-active" : ""
+                    }`
+                  }
+                >
+                  <span>Create account</span>
+                </NavLink>
+              </>
+            )}
+          </nav>
         </div>
-      </aside>
+      </header>
 
-      <header className="mobile-top">
-        <Link to="/" className="mobile-brand" aria-label="Mosaic home">
+      <header className="mobile-bar">
+        <Link to="/" className="brand-wordmark" aria-label="Mosaic home">
           Mosaic
         </Link>
-        <div className="mobile-top-actions">
+
+        <div className="mobile-bar-actions">
           {initializing ? (
-            <span className="rail-avatar-placeholder" aria-hidden="true" />
+            <span className="mobile-bar-skeleton" aria-hidden="true" />
           ) : user ? (
             <>
               <Link
-                to={`/u/${encodeURIComponent(username)}`}
-                className="mobile-avatar-link"
-                aria-label={`Your portfolio, @${username}`}
+                to="/settings"
+                className="mobile-icon-button"
+                aria-label="Settings"
               >
-                <Avatar
-                  src={getUserAvatar(user)}
-                  name={username}
-                  className="avatar--rail"
-                />
+                <NavIcon name="settings" />
               </Link>
               <button
                 type="button"
-                className="mobile-logout"
+                className="mobile-icon-button"
                 onClick={onLogout}
-                aria-label="Log out"
+                aria-label="Sign out"
               >
                 <NavIcon name="logout" />
               </button>
             </>
           ) : (
-            <Link to={guestAction.to} className="mobile-signin">
-              {guestAction.label}
+            <Link to="/login" className="mobile-signin">
+              Sign in
             </Link>
           )}
         </div>
       </header>
 
-      <nav
-        className={`mobile-dock${user ? "" : " mobile-dock--three"}`}
-        aria-label="Primary"
-      >
-        {links.map((link) => (
+      <nav className="mobile-dock" aria-label="Primary">
+        {dockLinks.map((link) => (
           <NavLink
             key={link.label}
             to={link.to}
             end={link.end}
             className={({ isActive }) =>
-              `dock-link${isActive ? " is-active" : ""}${
-                link.emphasis ? " dock-link--create" : ""
-              }`
+              `dock-link${isActive ? " is-active" : ""}`
             }
           >
             <NavIcon name={link.icon} />
             <span>{link.label}</span>
           </NavLink>
         ))}
+        {initializing && (
+          <span className="dock-link dock-link--placeholder" aria-hidden="true">
+            <span className="dock-skeleton-icon" />
+            <span className="dock-skeleton-text" />
+          </span>
+        )}
       </nav>
     </>
   );

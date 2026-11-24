@@ -44,8 +44,8 @@ const CommentThread = ({
   const [deleteError, setDeleteError] = useState("");
 
   const composerRef = useRef(null);
-  const textareaId = `reply-${postId}`;
-  const errorId = `reply-error-${postId}`;
+  const textareaId = `comment-${postId}`;
+  const errorId = `comment-error-${postId}`;
 
   useEffect(() => {
     let active = true;
@@ -72,7 +72,7 @@ const CommentThread = ({
       .catch((err) => {
         if (!active) return;
         setLoadError(
-          getErrorMessage(err, "The replies on this frame could not be loaded.")
+          getErrorMessage(err, "The comments on this post could not be loaded.")
         );
       })
       .finally(() => {
@@ -123,7 +123,7 @@ const CommentThread = ({
       }
     } catch (err) {
       setLoadError(
-        getErrorMessage(err, "Earlier replies could not be loaded.")
+        getErrorMessage(err, "Earlier comments could not be loaded.")
       );
     } finally {
       setLoadingMore(false);
@@ -138,12 +138,12 @@ const CommentThread = ({
     const text = draft.trim();
 
     if (!text) {
-      setComposerError("Write a reply before posting.");
+      setComposerError("Write a comment before posting.");
       return;
     }
 
     if (text.length > COMMENT_LIMIT) {
-      setComposerError(`Replies are limited to ${COMMENT_LIMIT} characters.`);
+      setComposerError(`Comments are limited to ${COMMENT_LIMIT} characters.`);
       return;
     }
 
@@ -187,7 +187,7 @@ const CommentThread = ({
       onCountChange?.(previousCount);
       setDraft(text);
       setComposerError(
-        getErrorMessage(err, "Your reply could not be saved. Try again.")
+        getErrorMessage(err, "Your comment could not be saved. Try again.")
       );
     } finally {
       setSubmitting(false);
@@ -219,7 +219,7 @@ const CommentThread = ({
       onCommentsChange?.(previous);
       onCountChange?.(previousCount);
       setDeleteError(
-        getErrorMessage(err, "That reply could not be deleted.")
+        getErrorMessage(err, "That comment could not be deleted.")
       );
     } finally {
       setDeletingId(null);
@@ -227,7 +227,7 @@ const CommentThread = ({
   };
 
   return (
-    <section className="thread" aria-label="Replies">
+    <section className="thread" aria-label="Comments">
       {nextCursor && !loading && (
         <button
           type="button"
@@ -235,7 +235,7 @@ const CommentThread = ({
           onClick={loadEarlier}
           disabled={loadingMore}
         >
-          {loadingMore ? "Loading earlier replies..." : "Load earlier replies"}
+          {loadingMore ? "Loading earlier comments..." : "Load earlier comments"}
         </button>
       )}
 
@@ -247,7 +247,7 @@ const CommentThread = ({
 
       {loading ? (
         <div className="thread-loading" role="status">
-          <span className="sr-only">Loading replies...</span>
+          <span className="sr-only">Loading comments...</span>
           <span className="reply-skeleton" />
           <span className="reply-skeleton" />
         </div>
@@ -264,7 +264,7 @@ const CommentThread = ({
         </div>
       ) : comments.length === 0 ? (
         <p className="thread-empty">
-          No replies yet. Say what you see in this frame.
+          No comments yet. Start the conversation.
         </p>
       ) : (
         <ul className="reply-list">
@@ -317,7 +317,7 @@ const CommentThread = ({
                       {isConfirming ? (
                         <>
                           <span className="reply-confirm">
-                            Delete this reply?
+                            Delete this comment?
                           </span>
                           <button
                             type="button"
@@ -347,7 +347,7 @@ const CommentThread = ({
                             setConfirmId(comment._id);
                             setDeleteError("");
                           }}
-                          aria-label={`Delete your reply: ${comment.text.slice(
+                          aria-label={`Delete your comment: ${comment.text.slice(
                             0,
                             50
                           )}`}
@@ -373,7 +373,7 @@ const CommentThread = ({
       {user ? (
         <form className="reply-composer" onSubmit={handleSubmit} noValidate>
           <label htmlFor={textareaId} className="sr-only">
-            Write a reply to this frame
+            Add a comment
           </label>
           <textarea
             ref={composerRef}
@@ -384,7 +384,7 @@ const CommentThread = ({
               setComposerError("");
             }}
             maxLength={COMMENT_LIMIT}
-            placeholder="Write a reply about this frame"
+            placeholder="Add a comment..."
             rows={2}
             aria-invalid={Boolean(composerError)}
             aria-describedby={composerError ? errorId : undefined}
@@ -407,7 +407,7 @@ const CommentThread = ({
                   Posting...
                 </>
               ) : (
-                "Post reply"
+                "Post comment"
               )}
             </button>
           </div>
@@ -423,7 +423,7 @@ const CommentThread = ({
           <Link to="/login" state={{ from: location }}>
             Sign in
           </Link>{" "}
-          to add a reply to this thread.
+          to add a comment.
         </p>
       )}
     </section>

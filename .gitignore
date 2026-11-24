@@ -12,3 +12,6 @@ npm-debug.log*
 Thumbs.db
 env.txt
 insta.txt
+
+.vercel
+.env*

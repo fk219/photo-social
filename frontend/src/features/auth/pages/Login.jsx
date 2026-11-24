@@ -5,8 +5,8 @@ import { useAuth } from "../hooks/useAuth";
 import { getErrorMessage } from "../../shared/utils/error";
 
 const DEMO = {
-  username: "demo_journal",
-  password: "DemoJournal2026!",
+  username: "demo_mosaic",
+  password: "DemoMosaic2026!",
 };
 
 const Login = () => {
@@ -68,52 +68,14 @@ const Login = () => {
   return (
     <main className="auth-page" id="main-content">
       <div className="auth-shell">
-        <section className="auth-stage" aria-label="About Mosaic">
-          <Link to="/explore" className="auth-wordmark">
-            Mosaic
-          </Link>
-
-          <div className="auth-stage-copy">
-            <p className="eyebrow">Image-first conversations</p>
-            <p className="auth-display">
-              A frame starts the <em>conversation.</em>
-            </p>
-            <p className="auth-stage-lede">
-              Mosaic is built for visual creators who want a real thread under
-              the work, not a pile of likes on top of it.
-            </p>
-          </div>
-
-          <ol className="auth-loop">
-            <li>
-              <span>01</span>
-              <strong>Post a frame</strong>
-              <p>One photograph and the take behind it.</p>
-            </li>
-            <li>
-              <span>02</span>
-              <strong>Follow the thread</strong>
-              <p>Replies arrive as a conversation, not a comment pile.</p>
-            </li>
-            <li>
-              <span>03</span>
-              <strong>Build a portfolio</strong>
-              <p>Every profile is a public body of work.</p>
-            </li>
-          </ol>
-        </section>
+        <Link to="/" className="auth-brand" aria-label="Mosaic home">
+          Mosaic
+        </Link>
 
         <section className="auth-card" aria-labelledby="login-title">
-          <div className="auth-meta">
-            <span>Mosaic / Members</span>
-            <span>Sign in</span>
-          </div>
-
-          <h1 id="login-title">
-            Back to the <em>thread.</em>
-          </h1>
+          <h1 id="login-title">Sign in</h1>
           <p className="auth-lede">
-            Sign in to see the frames and replies you keep up with.
+            Sign in to see posts and comments from the people you follow.
           </p>
 
           {notice && (
@@ -194,42 +156,43 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="demo-panel">
-            <div className="demo-panel-copy">
-              <p className="demo-label">Shared demo</p>
-              <p className="demo-creds">
-                <code>{DEMO.username}</code>
-                <span aria-hidden="true">/</span>
-                <code>{DEMO.password}</code>
-              </p>
-              <p className="demo-note">
-                The same account is open to every visitor.
-              </p>
+          <div className="auth-demo">
+            <div className="auth-demo-head">
+              <p className="auth-demo-label">Demo account</p>
+              <button
+                type="button"
+                className="quiet-button"
+                onClick={fillDemo}
+              >
+                Use demo account
+              </button>
             </div>
-            <button
-              type="button"
-              className="button ghost-button button--small demo-fill"
-              onClick={fillDemo}
-            >
-              Use demo account
-            </button>
+            <p className="auth-demo-creds">
+              <code>{DEMO.username}</code>
+              <span aria-hidden="true">/</span>
+              <code>{DEMO.password}</code>
+            </p>
+            <p className="auth-demo-note">
+              This account is shared by every visitor. Do not post private
+              information with it.
+            </p>
             <span className="sr-only" role="status">
               {demoFilled ? "Demo credentials filled into the form." : ""}
             </span>
           </div>
-
-          <p className="auth-switch">
-            New to Mosaic?{" "}
-            <Link to="/register" state={location.state}>
-              Create an account
-            </Link>
-          </p>
-
-          <nav className="auth-legal" aria-label="Legal">
-            <Link to="/privacy">Privacy</Link>
-            <Link to="/terms">Terms</Link>
-          </nav>
         </section>
+
+        <p className="auth-switch">
+          New to Mosaic?{" "}
+          <Link to="/register" state={location.state}>
+            Create an account
+          </Link>
+        </p>
+
+        <nav className="auth-legal" aria-label="Legal">
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+        </nav>
       </div>
     </main>
   );

@@ -45,7 +45,7 @@ const CreatePost = () => {
       setCompressing(false);
       setFile(null);
       setPreview(null);
-      setError("Choose a JPEG, PNG, or WebP photograph.");
+      setError("Choose a JPEG, PNG, or WebP photo.");
       return;
     }
 
@@ -67,7 +67,7 @@ const CreatePost = () => {
       if (compressionRef.current !== requestId) return;
 
       setError(
-        err?.message || "This photograph could not be prepared for upload."
+        err?.message || "This photo could not be prepared for upload."
       );
     } finally {
       if (compressionRef.current === requestId) {
@@ -113,8 +113,8 @@ const CreatePost = () => {
     if (!file) {
       setError(
         compressing
-          ? "The photograph is still being optimized."
-          : "Choose a photograph before publishing this frame."
+          ? "The photo is still being optimized."
+          : "Choose a photo before sharing this post."
       );
       return;
     }
@@ -128,7 +128,7 @@ const CreatePost = () => {
       setError(
         getErrorMessage(
           err,
-          "This frame could not be published. Please try again."
+          "This post could not be published. Please try again."
         )
       );
       setPublishing(false);
@@ -139,20 +139,14 @@ const CreatePost = () => {
 
   return (
     <main className="create-page" id="main-content">
-      <div className="create-shell">
+      <div className="page-shell page-shell--create">
         <header className="create-header">
-          <p className="eyebrow">Create / New frame</p>
-          <h1>
-            Post the frame. Write the <em>take.</em>
-          </h1>
-          <p>
-            One photograph and a short take. The take becomes the headline of
-            the thread, so write the thought you want people to answer.
-          </p>
+          <h1>New post</h1>
+          <p>Choose a photo and add a caption if you want one.</p>
         </header>
 
-        <form className="studio-card" onSubmit={handleSubmit} noValidate>
-          <div className="studio-media">
+        <form className="create-card" onSubmit={handleSubmit} noValidate>
+          <div className="create-media">
             <div
               className={`dropzone${hasPreview ? " has-preview" : ""}${
                 dragging ? " is-dragging" : ""
@@ -167,8 +161,8 @@ const CreatePost = () => {
               onDrop={handleDrop}
               aria-label={
                 hasPreview
-                  ? "Change the selected photograph"
-                  : "Choose a photograph"
+                  ? "Change the selected photo"
+                  : "Choose a photo"
               }
               aria-busy={compressing}
             >
@@ -176,30 +170,30 @@ const CreatePost = () => {
                 <>
                   <img
                     src={preview}
-                    alt="Selected photograph preview"
+                    alt="Selected photo preview"
                     className="dropzone-preview"
                     onError={() => setPreviewFailed(true)}
                   />
                   <span className="dropzone-change">
-                    {compressing ? "Optimizing..." : "Change photograph"}
+                    {compressing ? "Optimizing..." : "Change photo"}
                   </span>
                 </>
               ) : (
                 <div className="dropzone-empty">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3" y="6" width="18" height="14" rx="1.5" />
+                    <rect x="3" y="6" width="18" height="14" rx="2" />
                     <circle cx="12" cy="13" r="3.2" />
                     <path d="m8 6 1.4-2h5.2L16 6" />
                   </svg>
                   <strong>
-                    {previewFailed ? "Preview unavailable" : "Add a photograph"}
+                    {previewFailed ? "Preview unavailable" : "Add a photo"}
                   </strong>
-                  <span>Drop a file here or click to browse</span>
+                  <span>Drag a file here or click to browse</span>
                 </div>
               )}
               <input
                 ref={fileInputRef}
-                id="frame-image"
+                id="post-image"
                 type="file"
                 accept={ACCEPTED_IMAGE_TYPES}
                 hidden
@@ -207,39 +201,29 @@ const CreatePost = () => {
               />
             </div>
 
-            <p className="studio-file-note">
-              JPEG, PNG, or WebP. Photographs are resized to 1600 px and
-              compressed in your browser before upload.
+            <p className="create-file-note">
+              JPEG, PNG, or WebP. Photos are resized to 1600 px and compressed
+              in your browser before upload.
             </p>
           </div>
 
-          <div className="studio-fields">
-            <div className="studio-fields-head">
-              <p className="eyebrow">Your take</p>
-              <h2>What should we see?</h2>
-              <p>
-                A sentence or two is enough. People reply to a point of view,
-                not to a caption.
-              </p>
-            </div>
-
+          <div className="create-fields">
             <div className="field">
               <div className="field-label-row">
-                <label htmlFor="frame-caption">The take</label>
+                <label htmlFor="post-caption">Caption</label>
                 <span className="field-hint">{caption.length} / 2200</span>
               </div>
               <textarea
-                id="frame-caption"
+                id="post-caption"
                 name="caption"
                 maxLength={2200}
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
-                placeholder="What were you after in this frame?"
-                aria-describedby="frame-caption-hint"
+                placeholder="Write a caption..."
+                aria-describedby="post-caption-hint"
               />
-              <p className="field-hint" id="frame-caption-hint">
-                Optional. A frame can stand alone, though a take starts more
-                conversations.
+              <p className="field-hint" id="post-caption-hint">
+                Optional. A caption can give people something to talk about.
               </p>
             </div>
 
@@ -249,11 +233,11 @@ const CreatePost = () => {
               </p>
             )}
 
-            <div className="studio-actions">
-              <p className="studio-note">
+            <div className="create-actions">
+              <p className="create-note">
                 {compressing
-                  ? "Optimizing the photograph..."
-                  : "One photograph per frame."}
+                  ? "Optimizing the photo..."
+                  : "One photo per post."}
               </p>
               <button
                 type="submit"
@@ -274,7 +258,7 @@ const CreatePost = () => {
                     Optimizing...
                   </>
                 ) : (
-                  "Publish frame"
+                  "Share post"
                 )}
               </button>
             </div>

@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import Avatar from "../../shared/components/Avatar";
+import PostGrid, {
+  PostGridSkeleton,
+} from "../../posts/components/PostGrid";
+import PostModal from "../../posts/components/PostModal";
 import { getErrorMessage } from "../../shared/utils/error";
-import {
-  formatCount,
-  formatMonthDate,
-  getUserAvatar,
-} from "../../shared/utils/format";
+import { formatCount, getUserAvatar } from "../../shared/utils/format";
 import {
   followUser,
   getProfile,
@@ -20,20 +20,16 @@ const BIO_LIMIT = 160;
 
 const ProfileSkeleton = () => (
   <div className="profile-skeleton" role="status">
-    <span className="sr-only">Loading this portfolio...</span>
-    <div className="profile-skeleton-header">
+    <span className="sr-only">Loading this profile...</span>
+    <div className="profile-skeleton-head">
       <span className="profile-skeleton-avatar" />
-      <div className="profile-skeleton-lines">
+      <div className="profile-skeleton-info">
         <span className="profile-skeleton-line profile-skeleton-line--short" />
+        <span className="profile-skeleton-line profile-skeleton-line--wide" />
         <span className="profile-skeleton-line" />
-        <span className="profile-skeleton-line profile-skeleton-line--medium" />
       </div>
     </div>
-    <div className="profile-skeleton-grid">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <span className="profile-skeleton-tile" key={index} />
-      ))}
-    </div>
+    <PostGridSkeleton count={6} />
   </div>
 );
 
@@ -57,6 +53,7 @@ const Profile = () => {
   const [bioDraft, setBioDraft] = useState("");
   const [bioError, setBioError] = useState("");
   const [savingBio, setSavingBio] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const isOwner = Boolean(user?.username) && user.username === username;
 
@@ -83,10 +80,10 @@ const Profile = () => {
         if (!active) return;
         setError(
           err?.response?.status === 404
-            ? "No creator goes by that name. The page may have moved."
+            ? "No account goes by that name. The profile may have moved."
             : getErrorMessage(
                 err,
-                "This portfolio could not be loaded. Try again."
+                "This profile could not be loaded. Try again."
               )
         );
       })
@@ -105,6 +102,30 @@ const Profile = () => {
     const timeout = window.setTimeout(() => setCopied(false), 2200);
     return () => window.clearTimeout(timeout);
   }, [copied]);
+
+  const handlePostUpdate = useCallback((postId, patch) => {
+    setPosts((current) =>
+      current.map((post) =>
+        post._id === postId ? { ...post, ...patch } : post
+      )
+    );
+  }, []);
+
+  const handlePostDeleted = useCallback((postId) => {
+    setPosts((current) => current.filter((post) => post._id !== postId));
+    setProfile((current) =>
+      current
+        ? {
+            ...current,
+            postsCount: Math.max(
+              0,
+              (Number(current.postsCount) || 0) - 1
+            ),
+          }
+        : current
+    );
+    setSelectedPost(null);
+  }, []);
 
   const loadMore = async () => {
     if (!nextCursor || loadingMore) return;
@@ -126,7 +147,7 @@ const Profile = () => {
       setNextCursor(data?.nextCursor ?? null);
     } catch (err) {
       setLoadMoreError(
-        getErrorMessage(err, "More frames could not be loaded.")
+        getErrorMessage(err, "More posts could not be loaded.")
       );
     } finally {
       setLoadingMore(false);
@@ -239,7 +260,7 @@ const Profile = () => {
   if (loading) {
     return (
       <main className="profile-page" id="main-content">
-        <div className="profile-shell">
+        <div className="page-shell page-shell--profile">
           <ProfileSkeleton />
         </div>
       </main>
@@ -249,15 +270,11 @@ const Profile = () => {
   if (error || !profile) {
     return (
       <main className="profile-page" id="main-content">
-        <div className="profile-shell">
-          <Link to="/explore" className="back-link">
-            Back to Explore
-          </Link>
-          <section className="profile-message" role="alert">
-            <p className="eyebrow">Portfolio unavailable</p>
-            <h1>This body of work did not load.</h1>
+        <div className="page-shell page-shell--profile">
+          <section className="state-card" role="alert">
+            <h1>Profile unavailable</h1>
             <p>{error || "This profile could not be found."}</p>
-            <div className="profile-message-actions">
+            <div className="state-card-actions">
               <button
                 type="button"
                 className="button primary-button"
@@ -265,8 +282,8 @@ const Profile = () => {
               >
                 Try again
               </button>
-              <Link to="/explore" className="button ghost-button">
-                Browse Explore
+              <Link to="/explore" className="button secondary-button">
+                Go to Explore
               </Link>
             </div>
           </section>
@@ -277,307 +294,231 @@ const Profile = () => {
 
   return (
     <main className="profile-page" id="main-content">
-      <div className="profile-shell">
-        <Link to="/explore" className="back-link">
-          Back to Explore
-        </Link>
-
-        <header className="profile-header">
-          <div className="profile-identity">
+      <div className="page-shell page-shell--profile">
+        <header className="profile-head">
+          <div className="profile-avatar">
             <Avatar
               src={getUserAvatar(profile)}
               name={profile.username}
               className="avatar--profile"
             />
+          </div>
 
-            <div className="profile-copy">
-              <p className="eyebrow">Portfolio</p>
-              <h1>@{profile.username}</h1>
+          <div className="profile-info">
+            <div className="profile-title-row">
+              <h1 className="profile-username">{profile.username}</h1>
+
+              <div className="profile-actions">
+                {isOwner ? (
+                  <button
+                    type="button"
+                    className="button secondary-button"
+                    onClick={editing ? () => setEditing(false) : startEditing}
+                  >
+                    {editing ? "Cancel edit" : "Edit profile"}
+                  </button>
+                ) : user ? (
+                  <button
+                    type="button"
+                    className={`button ${
+                      profile.isFollowing
+                        ? "secondary-button"
+                        : "primary-button"
+                    }`}
+                    onClick={toggleFollow}
+                    disabled={followBusy}
+                    aria-pressed={profile.isFollowing}
+                    aria-label={
+                      profile.isFollowing
+                        ? `Unfollow @${profile.username}`
+                        : `Follow @${profile.username}`
+                    }
+                  >
+                    {followBusy
+                      ? "Saving..."
+                      : profile.isFollowing
+                        ? "Following"
+                        : "Follow"}
+                  </button>
+                ) : (
+                  <Link
+                    to="/login"
+                    state={{ from: location }}
+                    className="button primary-button"
+                  >
+                    Sign in to follow
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  className="button secondary-button"
+                  onClick={copyProfileLink}
+                >
+                  {copied ? "Link copied" : "Share profile"}
+                </button>
+                <span className="sr-only" role="status">
+                  {copied ? "Profile link copied to the clipboard." : ""}
+                </span>
+              </div>
+            </div>
+
+            <dl className="profile-stats" aria-label="Profile stats">
+              <div>
+                <dt>Posts</dt>
+                <dd>{formatCount(profile.postsCount)}</dd>
+              </div>
+              <div>
+                <dt>Followers</dt>
+                <dd>{formatCount(profile.followersCount)}</dd>
+              </div>
+              <div>
+                <dt>Following</dt>
+                <dd>{formatCount(profile.followingCount)}</dd>
+              </div>
+            </dl>
+
+            <div className="profile-bio">
               {profile.bio ? (
-                <p className="profile-bio">{profile.bio}</p>
+                <p>{profile.bio}</p>
               ) : (
-                <p className="profile-bio profile-bio--empty">
+                <p className="profile-bio-empty">
                   {isOwner
-                    ? "Add a few words about your work."
+                    ? "Add a short bio from Edit profile."
                     : "No bio yet."}
                 </p>
               )}
             </div>
+
+            {actionError && (
+              <p className="form-error profile-action-error" role="alert">
+                {actionError}
+              </p>
+            )}
           </div>
+        </header>
 
-          <dl className="profile-stats" aria-label="Profile stats">
-            <div>
-              <dt>Frames</dt>
-              <dd>{formatCount(profile.postsCount)}</dd>
-            </div>
-            <div>
-              <dt>Followers</dt>
-              <dd>{formatCount(profile.followersCount)}</dd>
-            </div>
-            <div>
-              <dt>Following</dt>
-              <dd>{formatCount(profile.followingCount)}</dd>
-            </div>
-          </dl>
-
-          <div className="profile-actions">
-            {isOwner ? (
-              <>
-                <button
-                  type="button"
-                  className="button ghost-button profile-action"
-                  onClick={editing ? () => setEditing(false) : startEditing}
-                >
-                  {editing ? "Close editor" : "Edit bio"}
-                </button>
-                <Link
-                  to="/create-post"
-                  className="button primary-button profile-action"
-                >
-                  New frame
-                </Link>
-              </>
-            ) : user ? (
-              <button
-                type="button"
-                className={`button profile-action ${
-                  profile.isFollowing ? "ghost-button" : "primary-button"
-                }`}
-                onClick={toggleFollow}
-                disabled={followBusy}
-                aria-pressed={profile.isFollowing}
-                aria-label={
-                  profile.isFollowing
-                    ? `Unfollow @${profile.username}`
-                    : `Follow @${profile.username}`
+        {editing && isOwner && (
+          <form className="profile-bio-form" onSubmit={saveBio} noValidate>
+            <div className="field">
+              <div className="field-label-row">
+                <label htmlFor="profile-bio">Bio</label>
+                <span className="field-hint">
+                  {bioDraft.length} / {BIO_LIMIT}
+                </span>
+              </div>
+              <textarea
+                id="profile-bio"
+                value={bioDraft}
+                maxLength={BIO_LIMIT}
+                rows={3}
+                onChange={(event) => {
+                  setBioDraft(event.target.value);
+                  setBioError("");
+                }}
+                placeholder="A short description of you or the photos you share."
+                aria-invalid={Boolean(bioError)}
+                aria-describedby={
+                  bioError ? "profile-bio-error" : undefined
                 }
-              >
-                {followBusy
-                  ? "Saving..."
-                  : profile.isFollowing
-                    ? "Following"
-                    : "Follow"}
-              </button>
-            ) : (
-              <Link
-                to="/login"
-                state={{ from: location }}
-                className="button primary-button profile-action"
-              >
-                Sign in to follow
-              </Link>
+                disabled={savingBio}
+              />
+            </div>
+
+            {bioError && (
+              <p className="field-error" id="profile-bio-error" role="alert">
+                {bioError}
+              </p>
             )}
 
-            <button
-              type="button"
-              className="button ghost-button profile-action"
-              onClick={copyProfileLink}
-            >
-              {copied ? "Link copied" : "Copy profile link"}
-            </button>
-            <span className="sr-only" role="status">
-              {copied ? "Profile link copied to the clipboard." : ""}
-            </span>
-          </div>
+            <div className="profile-bio-actions">
+              <button
+                type="submit"
+                className={`button primary-button${
+                  savingBio ? " is-loading" : ""
+                }`}
+                disabled={savingBio}
+                aria-busy={savingBio}
+              >
+                {savingBio ? (
+                  <>
+                    <span className="spinner" aria-hidden="true" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save bio"
+                )}
+              </button>
+              <button
+                type="button"
+                className="button secondary-button"
+                onClick={() => setEditing(false)}
+                disabled={savingBio}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
 
-          {actionError && (
-            <p className="form-error profile-action-error" role="alert">
-              {actionError}
+        <div className="profile-tabs">
+          <span className="profile-tab is-active">Posts</span>
+        </div>
+
+        {posts.length === 0 ? (
+          <section className="profile-empty" aria-labelledby="profile-empty-title">
+            <h2 id="profile-empty-title">No posts yet</h2>
+            <p>
+              {isOwner
+                ? "Share your first photo and it will appear here."
+                : "When this account shares a photo, it will appear here."}
+            </p>
+            {isOwner && (
+              <Link to="/create-post" className="button primary-button">
+                Create a post
+              </Link>
+            )}
+          </section>
+        ) : (
+          <PostGrid posts={posts} onSelect={setSelectedPost} />
+        )}
+
+        <div className="profile-more">
+          {loadMoreError && (
+            <p className="profile-more-error" role="alert">
+              {loadMoreError}
             </p>
           )}
 
-          {editing && isOwner && (
-            <form className="profile-bio-form" onSubmit={saveBio} noValidate>
-              <div className="field">
-                <div className="field-label-row">
-                  <label htmlFor="profile-bio">Bio</label>
-                  <span className="field-hint">
-                    {bioDraft.length} / {BIO_LIMIT}
-                  </span>
-                </div>
-                <textarea
-                  id="profile-bio"
-                  value={bioDraft}
-                  maxLength={BIO_LIMIT}
-                  rows={3}
-                  onChange={(event) => {
-                    setBioDraft(event.target.value);
-                    setBioError("");
-                  }}
-                  placeholder="Photographer, designer, illustrator. Say what you make."
-                  aria-invalid={Boolean(bioError)}
-                  aria-describedby={
-                    bioError ? "profile-bio-error" : undefined
-                  }
-                  disabled={savingBio}
-                />
-              </div>
-
-              {bioError && (
-                <p className="field-error" id="profile-bio-error" role="alert">
-                  {bioError}
-                </p>
+          {nextCursor ? (
+            <button
+              type="button"
+              className={`button secondary-button${
+                loadingMore ? " is-loading" : ""
+              }`}
+              onClick={loadMore}
+              disabled={loadingMore}
+              aria-busy={loadingMore}
+            >
+              {loadingMore ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  Loading...
+                </>
+              ) : (
+                "Load more posts"
               )}
+            </button>
+          ) : posts.length > 0 ? (
+            <p className="profile-end">
+              {formatCount(posts.length)}{" "}
+              {posts.length === 1 ? "post" : "posts"}
+            </p>
+          ) : null}
+        </div>
 
-              <div className="profile-bio-actions">
-                <button
-                  type="submit"
-                  className={`button primary-button${
-                    savingBio ? " is-loading" : ""
-                  }`}
-                  disabled={savingBio}
-                  aria-busy={savingBio}
-                >
-                  {savingBio ? (
-                    <>
-                      <span className="spinner" aria-hidden="true" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save bio"
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="button ghost-button"
-                  onClick={() => setEditing(false)}
-                  disabled={savingBio}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
-        </header>
-
-        <section className="portfolio" aria-labelledby="portfolio-title">
-          <div className="portfolio-head">
-            <div>
-              <p className="eyebrow">Work and threads</p>
-              <h2 id="portfolio-title">The portfolio</h2>
-            </div>
-            <span className="portfolio-count">
-              {formatCount(profile.postsCount)}{" "}
-              {profile.postsCount === 1 ? "frame" : "frames"}
-            </span>
-          </div>
-
-          {posts.length === 0 ? (
-            <div className="profile-empty">
-              <p className="eyebrow">Empty wall</p>
-              <h3>No frames on this wall yet.</h3>
-              <p>
-                {isOwner
-                  ? "Post the first frame to open this public portfolio."
-                  : "Check back when this creator posts their next frame."}
-              </p>
-              {isOwner && (
-                <Link to="/create-post" className="button primary-button">
-                  Post a frame
-                </Link>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="profile-grid">
-                {posts.map((post) => {
-                  const caption =
-                    typeof post.caption === "string"
-                      ? post.caption.trim()
-                      : "";
-                  const postedAt = formatMonthDate(post.createdAt);
-                  const replies = Number(post.commentsCount) || 0;
-                  const likes = Number(post.likesCount) || 0;
-
-                  return (
-                    <figure className="profile-frame" key={post._id}>
-                      <a
-                        href={post.image_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="profile-frame-link"
-                        aria-label={`Open the full photograph by @${
-                          profile.username
-                        } in a new tab${caption ? `: ${caption.slice(0, 80)}` : ""}`}
-                      >
-                        <span className="profile-frame-media">
-                          <img
-                            src={post.thumbnail_url || post.image_url}
-                            alt={
-                              caption
-                                ? `Photograph by @${profile.username}: ${caption.slice(
-                                    0,
-                                    120
-                                  )}`
-                                : `Photograph by @${profile.username}`
-                            }
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          {replies > 0 && (
-                            <span className="profile-frame-thread">
-                              {formatCount(replies)}{" "}
-                              {replies === 1 ? "reply" : "replies"}
-                            </span>
-                          )}
-                        </span>
-                        <span className="profile-frame-meta">
-                          <span className="profile-frame-take">
-                            {caption || "Frame without a written take"}
-                          </span>
-                          <span className="profile-frame-sub">
-                            {postedAt && <span>{postedAt}</span>}
-                            <span>
-                              {formatCount(likes)}{" "}
-                              {likes === 1 ? "like" : "likes"}
-                            </span>
-                          </span>
-                        </span>
-                      </a>
-                    </figure>
-                  );
-                })}
-              </div>
-
-              <div className="profile-more">
-                {loadMoreError && (
-                  <p className="profile-more-error" role="alert">
-                    {loadMoreError}
-                  </p>
-                )}
-
-                {nextCursor ? (
-                  <button
-                    type="button"
-                    className={`button ghost-button${
-                      loadingMore ? " is-loading" : ""
-                    }`}
-                    onClick={loadMore}
-                    disabled={loadingMore}
-                    aria-busy={loadingMore}
-                  >
-                    {loadingMore ? (
-                      <>
-                        <span className="spinner" aria-hidden="true" />
-                        Loading frames...
-                      </>
-                    ) : (
-                      "Load more frames"
-                    )}
-                  </button>
-                ) : (
-                  <p className="profile-end">
-                    {posts.length} {posts.length === 1 ? "frame" : "frames"}.
-                    End of this portfolio.
-                  </p>
-                )}
-              </div>
-            </>
-          )}
-        </section>
-
-        <footer className="profile-legal">
-          <p>Mosaic. Image-first conversations.</p>
+        <footer className="profile-footer">
+          <p>Mosaic</p>
           <nav aria-label="Mosaic">
             <Link to="/explore">Explore</Link>
             <Link to="/privacy">Privacy</Link>
@@ -585,6 +526,15 @@ const Profile = () => {
           </nav>
         </footer>
       </div>
+
+      {selectedPost && (
+        <PostModal
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
+          onPostUpdate={handlePostUpdate}
+          onDeleted={handlePostDeleted}
+        />
+      )}
     </main>
   );
 };

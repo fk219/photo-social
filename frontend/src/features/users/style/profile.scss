@@ -1,334 +1,183 @@
 @use "../../shared/tokens" as *;
 
 .profile-page {
-  padding: clamp(1.9rem, 4vw, 3.25rem) clamp(1rem, 3.5vw, 2.5rem)
-    clamp(4rem, 8vw, 7rem);
+  padding: 28px 20px 80px;
 }
 
-.profile-shell {
-  width: 100%;
-  max-width: 1060px;
-  min-width: 0;
-  margin: 0 auto;
+.page-shell--profile {
+  max-width: 935px;
 }
 
-.profile-header {
-  @include paper-surface;
-  position: relative;
+.profile-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1.4rem clamp(1.5rem, 4vw, 2.5rem);
-  overflow: hidden;
-  padding: clamp(1.2rem, 3.5vw, 1.9rem);
-  border-radius: $radius-card;
-  box-shadow: 0 34px 80px -56px rgba(0, 0, 0, 0.95);
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 68px;
-    height: 3px;
-    background-color: $vermilion;
-  }
+  grid-template-columns: 170px minmax(0, 1fr);
+  align-items: start;
+  gap: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid $line;
 }
 
-.profile-identity {
+.profile-avatar {
   display: flex;
-  align-items: flex-start;
-  gap: clamp(1rem, 3vw, 1.5rem);
-  grid-column: 1;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.profile-info {
   min-width: 0;
 }
 
-.profile-copy {
-  min-width: 0;
-
-  .eyebrow {
-    color: $cobalt-deep;
-  }
-
-  h1 {
-    margin: 0.3rem 0 0.55rem;
-    color: $gallery-ink;
-    font-family: $font-display;
-    font-size: clamp(2.4rem, 5vw, 3.4rem);
-    font-weight: 400;
-    letter-spacing: -0.03em;
-    line-height: 0.94;
-    overflow-wrap: anywhere;
-  }
-}
-
-.profile-bio {
-  max-width: 54ch;
-  color: $gallery-muted;
-  font-size: 0.92rem;
-  line-height: 1.65;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-
-  &--empty {
-    font-style: italic;
-  }
-}
-
-.profile-stats {
+.profile-title-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 1rem clamp(1.3rem, 3vw, 2.2rem);
-  align-self: start;
-  padding-left: clamp(1rem, 3vw, 1.6rem);
-  border-left: 1px solid $gallery-line;
+  gap: 10px 20px;
+  min-height: 44px;
+}
 
-  div {
-    display: flex;
-    flex-direction: column;
-    gap: 0.18rem;
-  }
-
-  dt {
-    color: $gallery-muted;
-    font-size: 0.57rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  dd {
-    color: $gallery-ink;
-    font-family: $font-display;
-    font-size: 1.85rem;
-    letter-spacing: -0.015em;
-    line-height: 1;
-  }
+.profile-username {
+  min-width: 0;
+  color: $ink-strong;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .profile-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.55rem;
-  grid-column: 1 / -1;
-  padding-top: 1rem;
-  border-top: 1px solid $gallery-line;
+  gap: 8px;
 }
 
-.profile-action {
-  min-height: 44px;
-  padding: 0.6rem 1rem;
-  font-size: 0.82rem;
+.profile-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  margin-top: 16px;
+
+  div {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  dt {
+    color: $muted;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  dd {
+    color: $ink;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.profile-bio {
+  margin-top: 14px;
+
+  p {
+    max-width: 60ch;
+    color: $ink;
+    font-size: 13px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+
+  .profile-bio-empty {
+    color: $muted;
+  }
 }
 
 .profile-action-error {
-  grid-column: 1 / -1;
+  margin-top: 12px;
 }
 
 .profile-bio-form {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  grid-column: 1 / -1;
-  max-width: 680px;
-  padding-top: 1.1rem;
-  border-top: 1px solid $gallery-line;
+  gap: 12px;
+  max-width: 620px;
+  margin-top: 20px;
+  padding: 18px;
+  background-color: $surface;
+  border: 1px solid $line;
+  border-radius: $radius-card;
 }
 
 .profile-bio-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: 8px;
 }
 
-.portfolio {
-  margin-top: clamp(1.8rem, 4vw, 2.6rem);
-}
-
-.portfolio-head {
+.profile-tabs {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid $ink-line;
-
-  .eyebrow {
-    color: $cream-faint;
-  }
-
-  h2 {
-    margin-top: 0.35rem;
-    color: $cream;
-    font-family: $font-display;
-    font-size: clamp(2rem, 4vw, 2.5rem);
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  margin-top: 20px;
+  border-bottom: 1px solid $line;
 }
 
-.portfolio-count {
-  color: $cream-faint;
-  font-size: 0.66rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.profile-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.75rem, 2vw, 1.15rem);
-  margin-top: 1.15rem;
-}
-
-.profile-frame {
-  @include paper-surface;
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  border-radius: 4px;
-  box-shadow: 0 24px 60px -50px rgba(0, 0, 0, 0.9);
-}
-
-.profile-frame-link {
-  display: block;
-  height: 100%;
-  border-radius: 4px;
-
-  &:hover .profile-frame-media img {
-    transform: scale(1.035);
-  }
-
-  &:hover .profile-frame-take {
-    color: $cobalt-deep;
-  }
-}
-
-.profile-frame-media {
-  position: relative;
-  display: block;
-  aspect-ratio: 1;
-  overflow: hidden;
-  background-color: $gallery-deep;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s $ease-out;
-  }
-}
-
-.profile-frame-thread {
-  position: absolute;
-  right: 0.45rem;
-  bottom: 0.45rem;
-  padding: 0.28rem 0.45rem;
-  border-radius: 999px;
-  background-color: rgba(10, 11, 14, 0.88);
-  color: $cream;
-  font-size: 0.58rem;
+.profile-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-height: 48px;
+  padding: 0 20px;
+  border-bottom: 1px solid transparent;
+  color: $muted;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.profile-frame-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.65rem 0.7rem 0.7rem;
-  border-top: 1px solid $gallery-line;
-}
-
-.profile-frame-take {
-  display: -webkit-box;
-  overflow: hidden;
-  min-height: 2.6em;
-  color: $gallery-ink;
-  font-size: 0.82rem;
-  font-weight: 500;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-  transition: color 0.2s $ease-out;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.profile-frame-sub {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.15rem 0.5rem;
-  color: $gallery-muted;
-  font-size: 0.58rem;
-  font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
 
-.profile-empty,
-.profile-message {
-  @include paper-surface;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: clamp(2rem, 5vw, 3.2rem) clamp(1.2rem, 5vw, 2.5rem);
-  border-radius: $radius-card;
-  box-shadow: 0 34px 80px -56px rgba(0, 0, 0, 0.95);
-  text-align: center;
-
-  .eyebrow {
-    color: $cobalt-deep;
-  }
-
-  h1,
-  h3 {
-    max-width: 20ch;
-    margin: 0.55rem 0 0.65rem;
-    color: $gallery-ink;
-    font-family: $font-display;
-    font-size: clamp(2.1rem, 5vw, 2.9rem);
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    line-height: 0.98;
-  }
-
-  > p:not(.eyebrow) {
-    max-width: 44ch;
-    color: $gallery-muted;
-    font-size: 0.88rem;
-    line-height: 1.65;
-  }
-
-  .button {
-    margin-top: 1.2rem;
+  &.is-active {
+    color: $ink-strong;
+    border-bottom-color: $ink-strong;
   }
 }
 
 .profile-empty {
-  margin-top: 1.15rem;
-}
-
-.profile-message {
-  margin-top: 1rem;
-}
-
-.profile-message-actions {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.55rem;
-  margin-top: 1.2rem;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 28px;
+  padding: 44px 24px;
+  background-color: $surface;
+  border: 1px solid $line;
+  border-radius: $radius-card;
+  text-align: center;
+
+  h2 {
+    color: $ink-strong;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  p {
+    max-width: 42ch;
+    margin-top: 8px;
+    color: $muted;
+    font-size: 13px;
+    line-height: 1.55;
+  }
 
   .button {
-    margin-top: 0;
+    margin-top: 20px;
   }
 }
 
@@ -336,209 +185,226 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
-  margin-top: 2rem;
+  gap: 8px;
+  padding: 24px 0 8px;
 }
 
 .profile-more-error {
-  color: $vermilion-light;
-  font-size: 0.78rem;
+  color: $red-ink;
+  font-size: 13px;
   line-height: 1.5;
   text-align: center;
 }
 
 .profile-end {
-  color: $cream-faint;
-  font-size: 0.64rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
+  color: $muted;
+  font-size: 12px;
+  line-height: 1.5;
   text-align: center;
-  text-transform: uppercase;
 }
 
-.profile-legal {
+.profile-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.4rem 1.5rem;
-  margin-top: clamp(2rem, 5vw, 3rem);
-  padding-top: 1rem;
-  border-top: 1px solid $ink-line;
-  color: $cream-faint;
-  font-size: 0.64rem;
-  letter-spacing: 0.03em;
+  gap: 4px 20px;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid $line;
+  color: $muted;
+  font-size: 12px;
 
   nav {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.1rem 1.1rem;
+    gap: 0 16px;
   }
 
   a {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-weight: 500;
 
     &:hover {
-      color: $cream;
+      color: $ink;
     }
   }
 }
 
-// Loading
-.profile-skeleton-header {
+.profile-skeleton-head {
   display: flex;
-  align-items: flex-start;
-  gap: 1.4rem;
-  padding: clamp(1.2rem, 3.5vw, 1.9rem);
-  background-color: rgba(246, 240, 228, 0.05);
-  border: 1px solid $ink-line;
-  border-radius: $radius-card;
+  align-items: center;
+  gap: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid $line;
 }
 
 .profile-skeleton-avatar {
   flex: none;
-  width: 104px;
-  height: 104px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
 }
 
-.profile-skeleton-lines {
+.profile-skeleton-info {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 12px;
   width: 100%;
-  padding-top: 1rem;
+  max-width: 420px;
 }
 
 .profile-skeleton-line {
   display: block;
   width: 76%;
-  height: 11px;
+  height: 10px;
+  border-radius: 4px;
 }
 
 .profile-skeleton-line--short {
   width: 32%;
 }
 
-.profile-skeleton-line--medium {
-  width: 54%;
-}
-
-.profile-skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.75rem, 2vw, 1.15rem);
-  margin-top: 1.8rem;
-}
-
-.profile-skeleton-tile {
-  display: block;
-  aspect-ratio: 1;
-  background-color: rgba(246, 240, 228, 0.05);
-  border: 1px solid $ink-line;
-  border-radius: 4px;
+.profile-skeleton-line--wide {
+  width: 52%;
 }
 
 .profile-skeleton-avatar,
 .profile-skeleton-line {
-  background: rgba(246, 240, 228, 0.09);
-  animation: profile-pulse 1.5s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    $surface-soft 25%,
+    #e9e9e9 37%,
+    $surface-soft 63%
+  );
+  background-size: 400% 100%;
+  animation: profile-shimmer 1.3s ease infinite;
 }
 
-@keyframes profile-pulse {
-  0%,
+.profile-skeleton .post-grid {
+  margin-top: 20px;
+}
+
+@keyframes profile-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+
   100% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 0.9;
+    background-position: 0 50%;
   }
 }
 
-@media (max-width: 860px) {
-  .profile-header {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .profile-stats {
-    width: 100%;
-    padding-top: 1rem;
-    padding-left: 0;
-    border-top: 1px solid $gallery-line;
-    border-left: 0;
-  }
-
-  .profile-grid,
-  .profile-skeleton-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 900px) {
+  .profile-page {
+    padding: 20px 16px 76px;
   }
 }
 
 @media (max-width: 700px) {
-  .profile-grid,
-  .profile-skeleton-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .profile-head {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 18px;
+    padding-bottom: 20px;
+  }
+
+  .profile-avatar {
+    padding-top: 0;
+  }
+
+  .profile-stats {
+    gap: 8px 20px;
+    margin-top: 12px;
+  }
+
+  .profile-skeleton-head {
+    gap: 18px;
+  }
+
+  .profile-skeleton-avatar {
+    width: 86px;
+    height: 86px;
   }
 }
 
 @media (max-width: 560px) {
   .profile-page {
-    padding: 1.4rem 1rem 3rem;
+    padding: 14px 12px 72px;
   }
 
-  .profile-identity {
-    gap: 0.9rem;
+  .profile-head {
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 14px;
   }
 
-  .profile-copy h1 {
-    font-size: clamp(2.15rem, 10vw, 2.7rem);
+  .avatar.avatar--profile {
+    width: 76px;
+    height: 76px;
+    font-size: 18px;
+  }
+
+  .profile-username {
+    font-size: 18px;
+  }
+
+  .profile-title-row {
+    gap: 8px 12px;
   }
 
   .profile-actions {
-    flex-direction: column;
-    align-items: stretch;
     width: 100%;
 
-    .profile-action {
-      width: 100%;
+    .button {
+      flex: 1 1 auto;
     }
   }
 
-  .profile-stats dd {
-    font-size: 1.6rem;
+  .profile-stats {
+    gap: 4px 16px;
+    margin-top: 10px;
+
+    div {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+    }
+
+    dt {
+      font-size: 11px;
+    }
   }
 
-  .portfolio-head {
+  .profile-bio {
+    margin-top: 10px;
+  }
+
+  .profile-tabs {
+    margin-top: 16px;
+  }
+
+  .profile-bio-form {
+    padding: 14px;
+  }
+
+  .profile-footer {
     align-items: flex-start;
     flex-direction: column;
-    gap: 0.4rem;
   }
 
-  .profile-frame-meta {
-    padding: 0.55rem 0.6rem 0.6rem;
+  .profile-skeleton-head {
+    grid-template-columns: 78px minmax(0, 1fr);
   }
 
-  .profile-frame-take {
-    font-size: 0.78rem;
-  }
-
-  .profile-legal {
-    align-items: flex-start;
-    flex-direction: column;
+  .profile-skeleton-avatar {
+    width: 76px;
+    height: 76px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .profile-frame-media img {
-    transition: none;
-  }
-
   .profile-skeleton-avatar,
   .profile-skeleton-line {
     animation: none;
