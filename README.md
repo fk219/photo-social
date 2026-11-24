@@ -15,6 +15,10 @@ A full social photo app built on the Insta Clone codebase: feed, stories, direct
 ![Render](https://img.shields.io/badge/API-Render-46E3B7)
 ![Vercel](https://img.shields.io/badge/Web-Vercel-000000?logo=vercel&logoColor=white)
 
+![Mosaic Following feed](docs/preview.png)
+![Mosaic direct messages](docs/messages.png)
+![Mosaic profile grid](docs/profile.png)
+
 ## What it is
 
 Mosaic is an Instagram-style social app with the full social loop: share photos and stories, follow people, talk in comment threads, send direct messages, get notifications, search for people and posts, and save what you want to come back to.
