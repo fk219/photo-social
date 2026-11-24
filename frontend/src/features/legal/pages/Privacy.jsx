@@ -30,6 +30,11 @@ const Privacy = () => (
         the ImageKit URL in MongoDB and asks ImageKit to serve resized versions
         for the feed and portfolio grid.
       </p>
+      <p>
+        Frames, takes, profiles and replies are public. Any visitor can read the
+        Explore gallery and any member profile without an account. Do not post
+        anything you need to keep private.
+      </p>
     </section>
 
     <section>
