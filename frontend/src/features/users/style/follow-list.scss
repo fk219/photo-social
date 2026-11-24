@@ -1,0 +1,115 @@
+@use "../../shared/tokens" as *;
+
+.follow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.follow-list-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.follow-list-skeleton {
+  height: 52px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    $surface-soft 0%,
+    #ebebeb 40%,
+    $surface-soft 80%
+  );
+  background-size: 200% 100%;
+  animation: follow-shimmer 1.4s linear infinite;
+}
+
+@keyframes follow-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.follow-list-people {
+  display: flex;
+  flex-direction: column;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid $line-soft;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+}
+
+.follow-list-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.avatar--follow {
+  width: 42px;
+  height: 42px;
+  flex: none;
+}
+
+.follow-list-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: $muted;
+    font-size: 12px;
+  }
+
+  span {
+    margin-top: 2px;
+    color: $muted-dark;
+    font-size: 12px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.follow-list-count {
+  flex: none;
+  color: $muted;
+  font-size: 11px;
+}
+
+.follow-list-empty {
+  padding: 24px 0;
+  color: $muted;
+  font-size: 14px;
+  text-align: center;
+}
+
+.follow-list-more {
+  align-self: center;
+}
+
+@media (max-width: 520px) {
+  .follow-list-count {
+    display: none;
+  }
+}

@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /messages
+Disallow: /notifications
+Disallow: /saved
+Disallow: /settings
 
 Sitemap: https://insta-clone.furqankhan.dev/sitemap.xml

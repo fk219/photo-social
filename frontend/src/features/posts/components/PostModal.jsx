@@ -30,6 +30,10 @@ const PostModal = ({ post, onClose, onPostUpdate, onDeleted }) => {
     closeRef.current?.focus();
 
     const handleKeyDown = (event) => {
+      // A share sheet, likes list or report dialog can open on top of the
+      // post modal. Let the top dialog own Escape and focus while it is open.
+      if (document.querySelector(".app-modal")) return;
+
       if (event.key === "Escape") {
         event.preventDefault();
         onCloseRef.current?.();

@@ -9,7 +9,12 @@ const Register = () => {
   const location = useLocation();
   const { loading, handleRegister } = useAuth();
 
-  const [form, setForm] = useState({ email: "", username: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    username: "",
+    password: "",
+  });
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState("");
 
@@ -36,6 +41,10 @@ const Register = () => {
       next.username = "Choose a username.";
     }
 
+    if (form.name.trim().length > 60) {
+      next.name = "Names are limited to 60 characters.";
+    }
+
     if (!form.password) {
       next.password = "Create a password.";
     } else if (form.password.length < 6) {
@@ -54,6 +63,7 @@ const Register = () => {
 
     try {
       await handleRegister(
+        form.name.trim(),
         form.email.trim(),
         form.username.trim(),
         form.password
@@ -90,6 +100,32 @@ const Register = () => {
           )}
 
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            <div className="field">
+              <div className="field-label-row">
+                <label htmlFor="register-name">Name</label>
+                <span className="field-hint">Optional</span>
+              </div>
+              <input
+                id="register-name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                value={form.name}
+                onChange={updateField("name")}
+                placeholder="Your name"
+                aria-invalid={Boolean(fieldErrors.name)}
+                aria-describedby={
+                  fieldErrors.name ? "register-name-error" : undefined
+                }
+                disabled={loading}
+              />
+              {fieldErrors.name && (
+                <p className="field-error" id="register-name-error">
+                  {fieldErrors.name}
+                </p>
+              )}
+            </div>
+
             <div className="field">
               <label htmlFor="register-email">Email</label>
               <input

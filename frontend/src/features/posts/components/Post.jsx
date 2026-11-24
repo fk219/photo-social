@@ -3,16 +3,19 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { usePost } from "../hooks/usePost";
 import { useAuth } from "../../auth/hooks/useAuth";
 import Avatar from "../../shared/components/Avatar";
+import RichText from "../../shared/components/RichText";
 import CommentThread from "./CommentThread";
+import ShareSheet from "./ShareSheet";
+import PostLikesModal from "./PostLikesModal";
 import {
   formatCount,
   formatFullDate,
   formatRelativeTime,
   getUserAvatar,
 } from "../../shared/utils/format";
+import { savePost, unsavePost } from "../services/post.api";
 
 const CAPTION_LIMIT = 200;
-const SHARE_STATUS_MS = 2600;
 
 const Post = ({
   post,
@@ -56,7 +59,12 @@ const Post = ({
   const [liking, setLiking] = useState(false);
   const [likeError, setLikeError] = useState("");
   const [pulse, setPulse] = useState(false);
-  const [shareState, setShareState] = useState("idle");
+  const [saved, setSaved] = useState(Boolean(post?.isSaved));
+  const [savingSave, setSavingSave] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [shareOpen, setShareOpen] = useState(false);
+  const [likesOpen, setLikesOpen] = useState(false);
+  const [heartBurst, setHeartBurst] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -69,7 +77,7 @@ const Post = ({
   const threadCloseRef = useRef(null);
   const threadTriggerRef = useRef("comment");
   const focusThreadRef = useRef(false);
-  const shareTimerRef = useRef(null);
+  const lastTapRef = useRef(0);
 
   const originalImage = post?.image_url || "";
   const thumbnailImage = post?.thumbnail_url || originalImage;
@@ -86,12 +94,9 @@ const Post = ({
     setImageFailed(false);
   }, [thumbnailImage]);
 
-  useEffect(
-    () => () => {
-      if (shareTimerRef.current) window.clearTimeout(shareTimerRef.current);
-    },
-    []
-  );
+  useEffect(() => {
+    setSaved(Boolean(post?.isSaved));
+  }, [post?.isSaved, postId]);
 
   const handleCountChange = useCallback(
     (count) => {
@@ -224,30 +229,63 @@ const Post = ({
     }
   };
 
-  const shareFrame = async () => {
-    if (!postId) return;
-
-    const shareUrl = `${window.location.origin}/u/${encodeURIComponent(
-      username
-    )}#post-${postId}`;
-
-    if (shareTimerRef.current) window.clearTimeout(shareTimerRef.current);
-
-    try {
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard is unavailable");
-      }
-
-      await navigator.clipboard.writeText(shareUrl);
-      setShareState("copied");
-    } catch {
-      setShareState("error");
+  const toggleSave = async () => {
+    if (!viewer) {
+      navigate("/login", { state: { from: location } });
+      return;
     }
 
-    shareTimerRef.current = window.setTimeout(
-      () => setShareState("idle"),
-      SHARE_STATUS_MS
-    );
+    if (!postId || savingSave) return;
+
+    const next = !saved;
+    setSavingSave(true);
+    setSaveError("");
+    setSaved(next);
+    patchPost(postId, { isSaved: next });
+    onPostUpdate?.({ isSaved: next });
+
+    try {
+      const data = next
+        ? await savePost(postId)
+        : await unsavePost(postId);
+
+      if (typeof data?.isSaved === "boolean") {
+        setSaved(data.isSaved);
+        patchPost(postId, { isSaved: data.isSaved });
+        onPostUpdate?.({ isSaved: data.isSaved });
+      }
+    } catch {
+      setSaved(!next);
+      patchPost(postId, { isSaved: !next });
+      onPostUpdate?.({ isSaved: !next });
+      setSaveError("That save could not be changed. Try again.");
+    } finally {
+      setSavingSave(false);
+    }
+  };
+
+  const likeFromMedia = () => {
+    if (!viewer) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+
+    if (!liked) toggleLike();
+
+    setHeartBurst(true);
+    window.setTimeout(() => setHeartBurst(false), 700);
+  };
+
+  const handleMediaTap = () => {
+    const now = Date.now();
+
+    if (now - lastTapRef.current < 300) {
+      lastTapRef.current = 0;
+      likeFromMedia();
+      return;
+    }
+
+    lastTapRef.current = now;
   };
 
   const removePost = async () => {
@@ -304,7 +342,11 @@ const Post = ({
           {isOwner && <span className="post-owner-tag">Your post</span>}
         </header>
 
-        <div className="post-media">
+        <div
+          className="post-media"
+          onTouchEnd={handleMediaTap}
+          onDoubleClick={likeFromMedia}
+        >
           {imageSrc && !imageFailed ? (
             <img
               src={imageSrc}
@@ -326,6 +368,14 @@ const Post = ({
               </svg>
               <span>Photo unavailable</span>
             </div>
+          )}
+
+          {heartBurst && (
+            <span className="post-heart-burst" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" />
+              </svg>
+            </span>
           )}
         </div>
 
@@ -384,45 +434,52 @@ const Post = ({
 
             <button
               type="button"
-              className={`post-action post-action--share${
-                shareState === "copied"
-                  ? " is-copied"
-                  : shareState === "error"
-                    ? " is-error"
-                    : ""
-              }`}
-              aria-label="Copy link to this post"
-              onClick={shareFrame}
+              className="post-action post-action--share"
+              aria-label="Share this post"
+              onClick={() => setShareOpen(true)}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m22 2-7 20-4-9-9-4 20-7Z" />
                 <path d="M22 2 11 13" />
               </svg>
             </button>
+
+            <button
+              type="button"
+              className={`post-action post-action--save${
+                saved ? " is-saved" : ""
+              }`}
+              aria-label={saved ? "Remove from saved" : "Save this post"}
+              aria-pressed={viewer ? saved : undefined}
+              aria-busy={savingSave}
+              onClick={toggleSave}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 4h12v17l-6-4.2L6 21V4Z" />
+              </svg>
+            </button>
           </div>
 
           <div className="post-meta">
-            <p className="post-likes" aria-live="polite">
-              {likesLabel}
-            </p>
-            <span
-              className={`post-share-status${
-                shareState === "error" ? " is-error" : ""
-              }`}
-              role="status"
-              aria-live="polite"
-            >
-              {shareState === "copied"
-                ? "Link copied"
-                : shareState === "error"
-                  ? "Could not copy the link"
-                  : ""}
-            </span>
+            {likesCount > 0 ? (
+              <button
+                type="button"
+                className="post-likes post-likes--button"
+                onClick={() => setLikesOpen(true)}
+                aria-haspopup="dialog"
+              >
+                {likesLabel}
+              </button>
+            ) : (
+              <p className="post-likes" aria-live="polite">
+                {likesLabel}
+              </p>
+            )}
           </div>
 
-          {likeError && (
+          {(likeError || saveError) && (
             <p className="post-inline-error" role="alert">
-              {likeError}
+              {likeError || saveError}
             </p>
           )}
 
@@ -440,7 +497,7 @@ const Post = ({
                 >
                   @{username}
                 </Link>{" "}
-                <span>{caption}</span>
+                <RichText text={caption} />
               </p>
               {isLongTake && (
                 <button
@@ -478,7 +535,7 @@ const Post = ({
                           >
                             @{comment.user}
                           </Link>{" "}
-                          <span>{comment.text}</span>
+                          <RichText text={comment.text} />
                         </p>
                         {comment.createdAt && (
                           <time
@@ -526,13 +583,19 @@ const Post = ({
           )}
 
           <div className="post-foot">
-            <time
-              className="post-date"
-              dateTime={post.createdAt}
-              title={fullDate || undefined}
+            <Link
+              to={`/p/${postId}`}
+              className="post-date-link"
+              aria-label={`Open post by @${username}`}
             >
-              {fullDate || postedAt}
-            </time>
+              <time
+                className="post-date"
+                dateTime={post.createdAt}
+                title={fullDate || undefined}
+              >
+                {fullDate || postedAt}
+              </time>
+            </Link>
 
             {isOwner && !confirmingDelete && (
               <button
@@ -608,6 +671,17 @@ const Post = ({
             focusRequest={focusRequest}
           />
         </section>
+      )}
+
+      {shareOpen && (
+        <ShareSheet post={post} onClose={() => setShareOpen(false)} />
+      )}
+
+      {likesOpen && (
+        <PostLikesModal
+          postId={postId}
+          onClose={() => setLikesOpen(false)}
+        />
       )}
     </article>
   );

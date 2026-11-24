@@ -37,26 +37,32 @@ const Terms = () => (
         <li>upload images you do not have the rights to share;</li>
         <li>impersonate another person or misrepresent who took a photo;</li>
         <li>
+          send abusive, threatening, spam or unsolicited messages, including in
+          direct messages;
+        </li>
+        <li>
           access accounts, data, or systems you do not own, or probe, scan, or
           overload the service;
         </li>
         <li>scrape, spam, or distribute malware.</li>
       </ul>
       <p>
-        We may remove content or restrict accounts that break these rules.
+        We may remove content, restrict accounts or review reports that break
+        these rules. You can block accounts and report content from the app.
       </p>
     </section>
 
     <section>
       <h2>Your photos</h2>
       <p>
-        You keep ownership of the photos you upload. By sharing a post, you give
-        Mosaic permission to store, resize, and display that image and the
-        caption attached to it so the service can show them in the feed, on your
-        public profile, and in related views. Deleting a post removes it from
-        Mosaic, but the image file may remain at its ImageKit URL. The deletion
-        process is described in the <Link to="/privacy">Privacy policy</Link>.
-        Email us if you want the file removed.
+        You keep ownership of the photos you upload. By sharing a post or story,
+        you give Mosaic permission to store, resize, and display that image and
+        the caption attached to it so the service can show them in the feed, on
+        your public profile, in stories, and in related views. Stories expire
+        after 24 hours. Deleting a post removes it from Mosaic, but the image
+        file may remain at its ImageKit URL. The deletion process is described
+        in the <Link to="/privacy">Privacy policy</Link>. Email us if you want
+        the file removed.
       </p>
       <p>
         You are responsible for making sure you have the rights to upload each

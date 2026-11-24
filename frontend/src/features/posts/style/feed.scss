@@ -315,12 +315,54 @@
     margin-left: auto;
   }
 
-  &.post-action--share.is-copied {
+  &.post-action--save.is-saved {
     color: $blue;
+
+    svg {
+      fill: currentColor;
+      stroke: currentColor;
+    }
+  }
+}
+
+.post-heart-burst {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: heart-burst 0.7s $ease-out both;
+
+  svg {
+    width: 92px;
+    height: 92px;
+    fill: #fff;
+    stroke: rgba(0, 0, 0, 0.12);
+    stroke-width: 1;
+    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.3));
+  }
+}
+
+@keyframes heart-burst {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
   }
 
-  &.post-action--share.is-error {
-    color: $red-ink;
+  22% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.02);
   }
 }
 
@@ -366,14 +408,16 @@
   line-height: 1.4;
 }
 
-.post-share-status {
-  color: $blue-ink;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.4;
+.post-likes--button {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
 
-  &.is-error {
-    color: $red-ink;
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 }
 
@@ -528,8 +572,21 @@
   margin-top: 2px;
 }
 
-.post-date {
+.post-date-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: $muted;
+
+  &:hover {
+    color: $ink;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.post-date {
+  color: inherit;
   font-size: 11px;
   line-height: 1.5;
   text-transform: uppercase;

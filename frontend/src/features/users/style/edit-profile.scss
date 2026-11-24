@@ -1,0 +1,39 @@
+@use "../../shared/tokens" as *;
+
+.edit-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.edit-profile-avatar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 4px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  p {
+    color: $muted;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}
+
+.avatar--edit {
+  width: 76px;
+  height: 76px;
+  flex: none;
+}
+
+.edit-profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}

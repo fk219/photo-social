@@ -223,7 +223,7 @@ const CreatePost = () => {
                 aria-describedby="post-caption-hint"
               />
               <p className="field-hint" id="post-caption-hint">
-                Optional. A caption can give people something to talk about.
+                Optional. Use @mentions and #hashtags to help people find it.
               </p>
             </div>
 

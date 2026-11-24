@@ -9,6 +9,10 @@ import {
   deleteAccount,
   exportAccount,
 } from "../services/settings.api";
+import {
+  getBlockedUsers,
+  unblockUser,
+} from "../../users/services/user.api";
 import "../style/settings.scss";
 
 const PASSWORD_MIN = 8;
@@ -56,6 +60,51 @@ const Settings = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    getBlockedUsers()
+      .then((data) => {
+        if (active) {
+          setBlockedUsers(Array.isArray(data?.users) ? data.users : []);
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setBlockedError(
+            getErrorMessage(error, "Blocked accounts could not be loaded.")
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setBlockedLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleUnblock = async (blockedUsername) => {
+    if (unblocking) return;
+
+    setUnblocking(blockedUsername);
+    setBlockedError("");
+
+    try {
+      await unblockUser(blockedUsername);
+      setBlockedUsers((current) =>
+        current.filter((entry) => entry.username !== blockedUsername)
+      );
+    } catch (error) {
+      setBlockedError(
+        getErrorMessage(error, "That account could not be unblocked.")
+      );
+    } finally {
+      setUnblocking("");
+    }
+  };
+
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -77,7 +126,13 @@ const Settings = () => {
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [blockedLoading, setBlockedLoading] = useState(true);
+  const [blockedError, setBlockedError] = useState("");
+  const [unblocking, setUnblocking] = useState("");
+
   const username = user?.username ?? "";
+  const displayName = user?.name?.trim() || username;
   const joined = formatLongDate(user?.createdAt) || "Not recorded";
   const bio = user?.bio?.trim() || "No bio yet.";
   const isDemoAccount =
@@ -246,10 +301,10 @@ const Settings = () => {
           >
             <Avatar
               src={getUserAvatar(user)}
-              name={username}
+              name={displayName}
               className="avatar--settings"
             />
-            <span>@{username}</span>
+            <span>{displayName}</span>
           </Link>
         </header>
 
@@ -261,6 +316,10 @@ const Settings = () => {
           <h2 id="settings-account-title">Account</h2>
 
           <dl className="settings-facts">
+            <div>
+              <dt>Name</dt>
+              <dd>{displayName}</dd>
+            </div>
             <div>
               <dt>Username</dt>
               <dd>@{username}</dd>
@@ -450,8 +509,9 @@ const Settings = () => {
           <h2 id="settings-data-title">Your data</h2>
 
           <p className="settings-note">
-            Download a JSON file with your account, posts, comments, likes and
-            follow relationships. Password hashes are never included.
+            Download a JSON file with your account, posts, comments, likes,
+            messages, notifications, saves, stories and follow relationships.
+            Password hashes are never included.
           </p>
 
           <div className="settings-actions">
@@ -489,6 +549,59 @@ const Settings = () => {
             Read the <Link to="/privacy">Privacy policy</Link> and the{" "}
             <Link to="/terms">Terms of use</Link>.
           </p>
+        </section>
+
+        <section
+          id="blocked"
+          className="settings-card"
+          aria-labelledby="settings-blocked-title"
+        >
+          <h2 id="settings-blocked-title">Blocked accounts</h2>
+
+          <p className="settings-note">
+            Blocked accounts cannot follow you, message you or see your posts
+            while signed in.
+          </p>
+
+          {blockedError && (
+            <p className="form-error" role="alert">
+              {blockedError}
+            </p>
+          )}
+
+          {blockedLoading ? (
+            <p className="settings-feedback" role="status">
+              Loading blocked accounts...
+            </p>
+          ) : blockedUsers.length === 0 ? (
+            <p className="settings-feedback">You have not blocked anyone.</p>
+          ) : (
+            <ul className="settings-blocked-list">
+              {blockedUsers.map((blocked) => (
+                <li key={blocked.username}>
+                  <Avatar
+                    src={blocked.profile_image}
+                    name={blocked.name || blocked.username}
+                    className="avatar--settings-row"
+                  />
+                  <span className="settings-blocked-copy">
+                    <strong>{blocked.name || blocked.username}</strong>
+                    <small>@{blocked.username}</small>
+                  </span>
+                  <button
+                    type="button"
+                    className="button secondary-button button--small"
+                    onClick={() => handleUnblock(blocked.username)}
+                    disabled={unblocking === blocked.username}
+                  >
+                    {unblocking === blocked.username
+                      ? "Unblocking..."
+                      : "Unblock"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section

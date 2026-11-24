@@ -16,3 +16,7 @@ const createClient = (path) =>
 export const authApi = createClient("/api/auth");
 export const postApi = createClient("/api/posts");
 export const userApi = createClient("/api/users");
+
+// Shared client for the social features that do not map to one existing
+// feature folder: messages, notifications, search and stories.
+export const socialApi = createClient("/api");

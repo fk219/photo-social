@@ -1,0 +1,144 @@
+@use "../../shared/tokens" as *;
+
+.saved-page {
+  padding: 24px 20px 96px;
+}
+
+.page-shell--saved {
+  max-width: 935px;
+}
+
+.saved-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 4px 2px 20px;
+
+  h1 {
+    color: $ink-strong;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+}
+
+.saved-count {
+  color: $muted;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.saved-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 52px 24px;
+  background-color: $surface;
+  border: 1px solid $line;
+  border-radius: $radius-card;
+  text-align: center;
+
+  h2 {
+    color: $ink-strong;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  p {
+    max-width: 42ch;
+    margin-top: 8px;
+    color: $muted;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .button {
+    margin-top: 18px;
+  }
+}
+
+.saved-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 14px;
+  border: 1.5px solid $ink;
+  border-radius: 50%;
+  color: $ink;
+
+  svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.saved-inline-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  background-color: $red-wash;
+  border: 1px solid rgba(237, 73, 86, 0.3);
+  border-radius: $radius-control;
+  color: $red-ink;
+  font-size: 12.5px;
+  line-height: 1.5;
+
+  .quiet-button {
+    color: inherit;
+  }
+}
+
+.saved-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 0 4px;
+}
+
+.saved-inline-error {
+  color: $red-ink;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .saved-page {
+    padding: 16px 12px 84px;
+  }
+
+  .saved-head {
+    padding-bottom: 16px;
+
+    h1 {
+      font-size: 22px;
+    }
+  }
+
+  .saved-state {
+    padding: 40px 18px;
+  }
+}
+
+@media (max-width: 390px) {
+  .saved-page {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+}

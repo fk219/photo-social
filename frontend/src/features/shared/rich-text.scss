@@ -1,0 +1,16 @@
+@use "./tokens" as *;
+
+.rich-text {
+  overflow-wrap: anywhere;
+
+  .rich-mention,
+  .rich-tag {
+    color: $blue-ink;
+    font-weight: 600;
+
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+}

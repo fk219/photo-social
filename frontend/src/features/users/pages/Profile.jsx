@@ -6,17 +6,14 @@ import PostGrid, {
   PostGridSkeleton,
 } from "../../posts/components/PostGrid";
 import PostModal from "../../posts/components/PostModal";
+import FollowListModal from "../components/FollowListModal";
+import EditProfileModal from "../components/EditProfileModal";
+import ProfileActionsMenu from "../components/ProfileActionsMenu";
+import { useStartConversation } from "../../messages/hooks/useStartConversation";
 import { getErrorMessage } from "../../shared/utils/error";
 import { formatCount, getUserAvatar } from "../../shared/utils/format";
-import {
-  followUser,
-  getProfile,
-  unfollowUser,
-  updateMe,
-} from "../services/user.api";
+import { followUser, getProfile, unfollowUser } from "../services/user.api";
 import "../style/profile.scss";
-
-const BIO_LIMIT = 160;
 
 const ProfileSkeleton = () => (
   <div className="profile-skeleton" role="status">
@@ -36,7 +33,9 @@ const ProfileSkeleton = () => (
 const Profile = () => {
   const { username } = useParams();
   const location = useLocation();
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
+  const { startingWith, error: messageError, openConversation } =
+    useStartConversation();
 
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -50,12 +49,12 @@ const Profile = () => {
   const [actionError, setActionError] = useState("");
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [bioDraft, setBioDraft] = useState("");
-  const [bioError, setBioError] = useState("");
-  const [savingBio, setSavingBio] = useState(false);
+  const [followList, setFollowList] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
 
   const isOwner = Boolean(user?.username) && user.username === username;
+  const blocked = Boolean(profile?.isBlocked);
+  const displayName = profile?.name?.trim() || profile?.username || username;
 
   useEffect(() => {
     let active = true;
@@ -65,9 +64,7 @@ const Profile = () => {
     setProfile(null);
     setPosts([]);
     setNextCursor(null);
-    setEditing(false);
     setActionError("");
-    setBioError("");
 
     getProfile(username)
       .then((data) => {
@@ -203,57 +200,27 @@ const Profile = () => {
     }
   };
 
-  const startEditing = () => {
-    setBioDraft(profile?.bio ?? "");
-    setBioError("");
-    setEditing(true);
+  const handleSavedProfile = (patch) => {
+    setProfile((current) =>
+      current
+        ? {
+            ...current,
+            ...patch,
+          }
+        : current
+    );
   };
 
-  const saveBio = async (event) => {
-    event.preventDefault();
+  const handleBlockChange = (isBlocked) => {
+    setProfile((current) =>
+      current ? { ...current, isBlocked } : current
+    );
 
-    if (savingBio) return;
-
-    const bio = bioDraft.trim();
-
-    if (bio.length > BIO_LIMIT) {
-      setBioError(`Bios are limited to ${BIO_LIMIT} characters.`);
-      return;
-    }
-
-    setSavingBio(true);
-    setBioError("");
-
-    try {
-      const data = await updateMe({ bio });
-      const updated = data?.user;
-      const nextBio = typeof updated?.bio === "string" ? updated.bio : bio;
-      const nextImage = updated?.profile_image;
-
-      setProfile((current) =>
-        current
-          ? {
-              ...current,
-              bio: nextBio,
-              profile_image: nextImage || current.profile_image,
-            }
-          : current
-      );
-
-      updateUser({
-        bio: nextBio,
-        ...(nextImage
-          ? { profile_image: nextImage, profileImage: nextImage }
-          : {}),
-      });
-
-      setEditing(false);
-    } catch (err) {
-      setBioError(
-        getErrorMessage(err, "Your bio could not be saved. Try again.")
-      );
-    } finally {
-      setSavingBio(false);
+    if (isBlocked) {
+      setPosts([]);
+      setNextCursor(null);
+    } else {
+      setReloadKey((key) => key + 1);
     }
   };
 
@@ -299,47 +266,64 @@ const Profile = () => {
           <div className="profile-avatar">
             <Avatar
               src={getUserAvatar(profile)}
-              name={profile.username}
+              name={displayName}
               className="avatar--profile"
             />
           </div>
 
           <div className="profile-info">
             <div className="profile-title-row">
-              <h1 className="profile-username">{profile.username}</h1>
+              <div className="profile-identity">
+                <h1 className="profile-username">{displayName}</h1>
+                {profile.name && (
+                  <p className="profile-handle">@{profile.username}</p>
+                )}
+              </div>
 
               <div className="profile-actions">
                 {isOwner ? (
                   <button
                     type="button"
                     className="button secondary-button"
-                    onClick={editing ? () => setEditing(false) : startEditing}
+                    onClick={() => setEditing(true)}
                   >
-                    {editing ? "Cancel edit" : "Edit profile"}
+                    Edit profile
                   </button>
                 ) : user ? (
-                  <button
-                    type="button"
-                    className={`button ${
-                      profile.isFollowing
-                        ? "secondary-button"
-                        : "primary-button"
-                    }`}
-                    onClick={toggleFollow}
-                    disabled={followBusy}
-                    aria-pressed={profile.isFollowing}
-                    aria-label={
-                      profile.isFollowing
-                        ? `Unfollow @${profile.username}`
-                        : `Follow @${profile.username}`
-                    }
-                  >
-                    {followBusy
-                      ? "Saving..."
-                      : profile.isFollowing
-                        ? "Following"
-                        : "Follow"}
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={`button ${
+                        profile.isFollowing
+                          ? "secondary-button"
+                          : "primary-button"
+                      }`}
+                      onClick={toggleFollow}
+                      disabled={followBusy || blocked}
+                      aria-pressed={profile.isFollowing}
+                      aria-label={
+                        profile.isFollowing
+                          ? `Unfollow @${profile.username}`
+                          : `Follow @${profile.username}`
+                      }
+                    >
+                      {followBusy
+                        ? "Saving..."
+                        : profile.isFollowing
+                          ? "Following"
+                          : "Follow"}
+                    </button>
+                    <button
+                      type="button"
+                      className="button secondary-button"
+                      onClick={() => openConversation(profile.username)}
+                      disabled={Boolean(startingWith) || blocked}
+                    >
+                      {startingWith === profile.username
+                        ? "Opening..."
+                        : "Message"}
+                    </button>
+                  </>
                 ) : (
                   <Link
                     to="/login"
@@ -357,6 +341,14 @@ const Profile = () => {
                 >
                   {copied ? "Link copied" : "Share profile"}
                 </button>
+
+                {!isOwner && user && (
+                  <ProfileActionsMenu
+                    username={profile.username}
+                    isBlocked={blocked}
+                    onBlockChange={handleBlockChange}
+                  />
+                )}
                 <span className="sr-only" role="status">
                   {copied ? "Profile link copied to the clipboard." : ""}
                 </span>
@@ -370,11 +362,27 @@ const Profile = () => {
               </div>
               <div>
                 <dt>Followers</dt>
-                <dd>{formatCount(profile.followersCount)}</dd>
+                <dd>
+                  <button
+                    type="button"
+                    className="profile-stat-button"
+                    onClick={() => setFollowList("followers")}
+                  >
+                    {formatCount(profile.followersCount)}
+                  </button>
+                </dd>
               </div>
               <div>
                 <dt>Following</dt>
-                <dd>{formatCount(profile.followingCount)}</dd>
+                <dd>
+                  <button
+                    type="button"
+                    className="profile-stat-button"
+                    onClick={() => setFollowList("following")}
+                  >
+                    {formatCount(profile.followingCount)}
+                  </button>
+                </dd>
               </div>
             </dl>
 
@@ -390,82 +398,31 @@ const Profile = () => {
               )}
             </div>
 
-            {actionError && (
+            {(actionError || messageError) && (
               <p className="form-error profile-action-error" role="alert">
-                {actionError}
+                {actionError || messageError}
               </p>
             )}
           </div>
         </header>
 
-        {editing && isOwner && (
-          <form className="profile-bio-form" onSubmit={saveBio} noValidate>
-            <div className="field">
-              <div className="field-label-row">
-                <label htmlFor="profile-bio">Bio</label>
-                <span className="field-hint">
-                  {bioDraft.length} / {BIO_LIMIT}
-                </span>
-              </div>
-              <textarea
-                id="profile-bio"
-                value={bioDraft}
-                maxLength={BIO_LIMIT}
-                rows={3}
-                onChange={(event) => {
-                  setBioDraft(event.target.value);
-                  setBioError("");
-                }}
-                placeholder="A short description of you or the photos you share."
-                aria-invalid={Boolean(bioError)}
-                aria-describedby={
-                  bioError ? "profile-bio-error" : undefined
-                }
-                disabled={savingBio}
-              />
-            </div>
-
-            {bioError && (
-              <p className="field-error" id="profile-bio-error" role="alert">
-                {bioError}
-              </p>
-            )}
-
-            <div className="profile-bio-actions">
-              <button
-                type="submit"
-                className={`button primary-button${
-                  savingBio ? " is-loading" : ""
-                }`}
-                disabled={savingBio}
-                aria-busy={savingBio}
-              >
-                {savingBio ? (
-                  <>
-                    <span className="spinner" aria-hidden="true" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save bio"
-                )}
-              </button>
-              <button
-                type="button"
-                className="button secondary-button"
-                onClick={() => setEditing(false)}
-                disabled={savingBio}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
-
         <div className="profile-tabs">
           <span className="profile-tab is-active">Posts</span>
         </div>
 
-        {posts.length === 0 ? (
+        {blocked ? (
+          <section className="profile-empty" aria-labelledby="profile-blocked-title">
+            <h2 id="profile-blocked-title">This account is blocked</h2>
+            <p>Unblock @{profile.username} to see their posts again.</p>
+            <button
+              type="button"
+              className="button secondary-button"
+              onClick={() => handleBlockChange(false)}
+            >
+              Unblock
+            </button>
+          </section>
+        ) : posts.length === 0 ? (
           <section className="profile-empty" aria-labelledby="profile-empty-title">
             <h2 id="profile-empty-title">No posts yet</h2>
             <p>
@@ -490,7 +447,7 @@ const Profile = () => {
             </p>
           )}
 
-          {nextCursor ? (
+          {!blocked && nextCursor ? (
             <button
               type="button"
               className={`button secondary-button${
@@ -509,7 +466,7 @@ const Profile = () => {
                 "Load more posts"
               )}
             </button>
-          ) : posts.length > 0 ? (
+          ) : !blocked && posts.length > 0 ? (
             <p className="profile-end">
               {formatCount(posts.length)}{" "}
               {posts.length === 1 ? "post" : "posts"}
@@ -533,6 +490,22 @@ const Profile = () => {
           onClose={() => setSelectedPost(null)}
           onPostUpdate={handlePostUpdate}
           onDeleted={handlePostDeleted}
+        />
+      )}
+
+      {editing && isOwner && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setEditing(false)}
+          onSaved={handleSavedProfile}
+        />
+      )}
+
+      {followList && (
+        <FollowListModal
+          username={profile.username}
+          mode={followList}
+          onClose={() => setFollowList(null)}
         />
       )}
     </main>

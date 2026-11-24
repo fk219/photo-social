@@ -23,11 +23,11 @@ export const useAuth = () => {
     }
   };
 
-  const handleRegister = async (email, username, password) => {
+  const handleRegister = async (name, email, username, password) => {
     setLoading(true);
 
     try {
-      const response = await register(email, username, password);
+      const response = await register(name, email, username, password);
       setUser(response.user);
       return response;
     } finally {

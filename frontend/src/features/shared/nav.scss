@@ -31,9 +31,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 18px;
   width: 100%;
-  max-width: 975px;
+  max-width: 1100px;
   height: 60px;
   margin: 0 auto;
   padding: 0 20px;
@@ -44,6 +44,204 @@
   align-items: center;
   gap: 2px;
   min-width: 0;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.topbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 210px;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid $line;
+  border-radius: 10px;
+  background-color: $surface-soft;
+  transition: border-color 0.2s $ease-out, background-color 0.2s $ease-out;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    fill: none;
+    stroke: $muted;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  input {
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $ink;
+    font-size: 13px;
+
+    &::placeholder {
+      color: $muted;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &:focus-within {
+    border-color: $blue;
+    background-color: $surface;
+  }
+}
+
+.topbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-auth-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: $ink;
+  font-size: 13px;
+  font-weight: 600;
+
+  &:hover {
+    background-color: $surface-soft;
+  }
+
+  &--join {
+    background-color: $blue;
+    color: #fff;
+    padding: 0 14px;
+
+    &:hover {
+      background-color: $blue-hover;
+    }
+  }
+}
+
+.topbar-avatar {
+  position: relative;
+}
+
+.topbar-avatar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+
+  &:hover {
+    background-color: $surface-soft;
+  }
+}
+
+.avatar--nav {
+  width: 32px;
+  height: 32px;
+  font-size: 11px;
+}
+
+.topbar-avatar-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  min-width: 210px;
+  padding: 6px;
+  background-color: $surface;
+  border: 1px solid $line;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+
+  a,
+  button {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: $ink;
+    font-size: 13px;
+    text-align: left;
+
+    &:hover {
+      background-color: $surface-soft;
+    }
+  }
+}
+
+.topbar-avatar-user {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 12px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid $line-soft;
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  span {
+    color: $muted;
+    font-size: 12px;
+  }
+}
+
+.nav-badge {
+  position: absolute;
+  top: 4px;
+  right: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border: 2px solid $surface;
+  border-radius: 999px;
+  background-color: $red;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.topbar-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.topbar-icon-wrap .nav-badge {
+  top: -5px;
+  right: -7px;
+}
+
+.mobile-icon-button .nav-badge {
+  position: absolute;
 }
 
 .topbar-link {
@@ -131,6 +329,21 @@
   padding-bottom: 0;
 }
 
+@media (min-width: 761px) and (max-width: 980px) {
+  .topbar-link-label {
+    display: none;
+  }
+
+  .topbar-link {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .topbar-search {
+    width: 150px;
+  }
+}
+
 @media (max-width: 760px) {
   .topbar {
     display: none;
@@ -173,10 +386,11 @@
   }
 
   .mobile-icon-button {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
+    width: 40px;
     height: 44px;
     padding: 0;
     border: 0;
@@ -272,6 +486,16 @@
     &--placeholder {
       pointer-events: none;
     }
+  }
+
+  .dock-icon-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .dock-icon-wrap .nav-badge {
+    top: -4px;
+    right: -9px;
   }
 
   .dock-skeleton-icon {

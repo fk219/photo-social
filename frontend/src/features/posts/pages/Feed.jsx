@@ -4,6 +4,7 @@ import Post from "../components/Post";
 import PostGrid, { PostGridSkeleton } from "../components/PostGrid";
 import PostModal from "../components/PostModal";
 import FeedTabs from "../components/FeedTabs";
+import StoryRail from "../../stories/components/StoryRail";
 import { usePost } from "../hooks/usePost";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { formatCount } from "../../shared/utils/format";
@@ -101,6 +102,8 @@ const Feed = ({ scope = "explore" }) => {
           followingScope ? "page-shell--feed" : "page-shell--explore"
         }`}
       >
+        {followingScope && user && !initializing && <StoryRail />}
+
         <FeedTabs scope={scope} signedIn={Boolean(user)} />
 
         <h1 className={followingScope ? "sr-only" : "explore-title"}>
@@ -276,6 +279,14 @@ const Feed = ({ scope = "explore" }) => {
         <PostModal
           post={selectedPost}
           onClose={() => setSelectedPost(null)}
+          onPostUpdate={(postId, patch) =>
+            setSelectedPost((current) =>
+              current && current._id === postId
+                ? { ...current, ...patch }
+                : current
+            )
+          }
+          onDeleted={() => setSelectedPost(null)}
         />
       )}
     </main>

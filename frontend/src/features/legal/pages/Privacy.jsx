@@ -9,10 +9,10 @@ const Privacy = () => (
     <section>
       <h2>Account details</h2>
       <p>
-        We store your email address, your username, an optional bio, a profile
-        image URL, and a bcrypt hash of your password. The password itself is
-        never stored in readable form. Account records also keep the date they
-        were created and last updated.
+        We store your email address, your username, an optional name, an
+        optional bio, a profile image URL, and a bcrypt hash of your password.
+        The password itself is never stored in readable form. Account records
+        also keep the date they were created and last updated.
       </p>
     </section>
 
@@ -30,15 +30,37 @@ const Privacy = () => (
         the Explore page and any member profile without an account. Do not post
         anything you need to keep private.
       </p>
+      <p>
+        Stories are stored as image references with a 24 hour expiry. A story
+        keeps a list of members who have seen it. Expired stories are removed
+        from the database by a TTL index.
+      </p>
     </section>
 
     <section>
       <h2>Likes, comments and follows</h2>
       <p>
-        We store likes (which member liked which post), comments (the text,
-        author username, post and timestamp), and follow relationships (who
-        follows whom). Comments are stored in the comments collection. The
-        counts shown on the feed and profiles are calculated from this data.
+        We store likes (which member liked which post or comment), comments and
+        replies (the text, author username, post, parent comment and
+        timestamp), and follow relationships (who follows whom). Comment counts
+        shown on the feed and profiles are calculated from this data.
+      </p>
+    </section>
+
+    <section>
+      <h2>Messages, notifications and saves</h2>
+      <p>
+        Direct messages store the conversation participants, the sender, the
+        message text or shared post, timestamps, and which participants have
+        read each message. Messages are visible only to the people in that
+        conversation. Mosaic does not scan message text for advertising.
+      </p>
+      <p>
+        Notifications store the recipient, the member who triggered them, the
+        type of activity, and a reference to the related post, comment or
+        profile. Saved posts store which member saved which post. Saved posts,
+        notifications, blocks and reports are visible only to the member who
+        created them and to the service operators who review reports.
       </p>
     </section>
 
@@ -76,7 +98,8 @@ const Privacy = () => (
         </li>
         <li>
           <strong>MongoDB Atlas</strong> stores account, post, like, comment,
-          follow and blacklist records.
+          message, notification, story, save, block, report and blacklist
+          records.
         </li>
         <li>
           <strong>ImageKit</strong> stores and serves image files and
@@ -93,10 +116,11 @@ const Privacy = () => (
     <section>
       <h2>Retention</h2>
       <p>
-        Account details, posts, likes, comments and follows stay while your
-        account exists and the content is not deleted. Deleted posts lose their
-        MongoDB record, likes and comments. The image file may stay in ImageKit
-        at its URL, as described below.
+        Account details, posts, likes, comments, messages, notifications,
+        saves, blocks and follows stay while your account exists and the
+        content is not deleted. Deleted posts lose their MongoDB record, likes,
+        comments and saves. Stories expire after 24 hours. The image file may
+        stay in ImageKit at its URL, as described below.
       </p>
       <p>
         Logout blacklist entries expire within 24 hours. Provider logs and
@@ -110,15 +134,18 @@ const Privacy = () => (
       <h2>Deleting content and accounts</h2>
       <p>
         You can delete your own posts from the post actions. That removes the
-        database record, its likes, and its comments. The original image may
-        remain available at its ImageKit URL after the post is deleted.
+        database record, its likes, comments, saves and related notifications.
+        The original image may remain available at its ImageKit URL after the
+        post is deleted.
       </p>
       <p>
         You can delete your account from Settings. That removes the account
-        record, posts, comments, likes and follow relationships, and ends the
-        current session. The same page can prepare a JSON export of those
-        records. ImageKit image files are not deleted by account deletion, so
-        they may remain available at their URLs. Email{" "}
+        record, posts, comments, replies, comment likes, likes, messages,
+        conversations, notifications, saved posts, stories, blocks, reports and
+        follow relationships, and ends the current session. The same page can
+        prepare a JSON export of those records. ImageKit image files are not
+        deleted by account deletion, so they may remain available at their
+        URLs. Email{" "}
         <a href="mailto:furqank219@gmail.com">furqank219@gmail.com</a> if you
         need help or want to ask about files tied to a deleted account. Some
         copies may remain for a short time in provider backups or caches.

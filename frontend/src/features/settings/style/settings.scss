@@ -257,6 +257,47 @@
   }
 }
 
+.settings-blocked-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid $line-soft;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+}
+
+.avatar--settings-row {
+  width: 42px;
+  height: 42px;
+  flex: none;
+}
+
+.settings-blocked-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  small {
+    color: $muted;
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 700px) {
   .settings-delete-fields {
     grid-template-columns: minmax(0, 1fr);

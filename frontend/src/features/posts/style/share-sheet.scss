@@ -1,0 +1,176 @@
+@use "../../shared/tokens" as *;
+
+.share-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.share-sheet-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.share-sheet-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid $line;
+  border-radius: 10px;
+  background-color: $surface;
+  text-align: left;
+
+  &:hover {
+    background-color: $surface-soft;
+  }
+}
+
+.share-sheet-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 50%;
+  background-color: $surface-soft;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: $ink;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.share-sheet-action > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  small {
+    color: $muted;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+}
+
+.share-sheet-send {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  h3 {
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+.share-sheet-search {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid $line;
+  border-radius: 8px;
+  background-color: $surface-soft;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: $blue;
+    box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.16);
+  }
+}
+
+.share-sheet-status,
+.share-sheet-empty {
+  color: $muted;
+  font-size: 13px;
+  line-height: 1.5;
+
+  a {
+    color: $blue-ink;
+    font-weight: 600;
+  }
+}
+
+.share-sheet-sent {
+  color: #1b7f3b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.share-sheet-people {
+  display: flex;
+  flex-direction: column;
+  max-height: 250px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid $line-soft;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+}
+
+.share-sheet-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.share-sheet-person-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: $muted;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.avatar--share {
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+
+@media (max-width: 420px) {
+  .share-sheet-actions {
+    grid-template-columns: 1fr;
+  }
+}

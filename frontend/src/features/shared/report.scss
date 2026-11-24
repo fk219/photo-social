@@ -1,0 +1,28 @@
+@use "./tokens" as *;
+
+.report-form,
+.report-done {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.report-form select {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid $line;
+  border-radius: 8px;
+  background-color: $surface;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: $blue;
+    box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.16);
+  }
+}
+
+.report-done p {
+  color: $muted-dark;
+  font-size: 14px;
+}
