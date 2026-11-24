@@ -2,6 +2,8 @@ const postModel = require("../models/post.model");
 const userModel = require("../models/user.model");
 const likeModel = require("../models/like.model");
 const commentModel = require("../models/comment.model");
+const saveModel = require("../models/save.model");
+const followModel = require("../models/follow.model");
 const { buildCursorMatch } = require("./postPipeline");
 const { getThumbnailUrl } = require("./imagekit");
 
@@ -9,16 +11,16 @@ const fetchRecentComments = async (postIds) => {
     if (postIds.length === 0) return new Map();
 
     const rows = await commentModel.aggregate([
-        { $match: { post: { $in: postIds } } },
+        { $match: { post: { $in: postIds }, parent: null } },
         { $sort: { _id: 1 } },
         {
             $setWindowFields: {
                 partitionBy: "$post",
                 sortBy: { _id: 1 },
-                output: { replyRank: { $documentNumber: {} } },
+                output: { commentRank: { $documentNumber: {} } },
             },
         },
-        { $match: { replyRank: { $lte: 2 } } },
+        { $match: { commentRank: { $lte: 2 } } },
         {
             $project: {
                 post: 1,
@@ -58,9 +60,10 @@ const fetchRecentComments = async (postIds) => {
 };
 
 /**
- * Batched feed read: one post query, one author query, one viewer-like query
- * and one reply query. The old aggregation did several lookups per post, which
- * made the feed wait on a chain of small database calls.
+ * Batched feed read: one post query, one author query, one viewer-like query,
+ * one save query, one follow query and one reply query. The old aggregation did
+ * several lookups per post, which made the feed wait on a chain of small
+ * database calls.
  */
 const fetchPostsPage = async ({
     match = {},
@@ -87,21 +90,40 @@ const fetchPostsPage = async ({
     const ids = page.map((post) => post._id);
     const authorIds = [...new Set(page.map((post) => String(post.user)))];
 
-    const [authors, viewerLikes, recentByPost] = await Promise.all([
-        authorIds.length
-            ? userModel
-                  .find({ _id: { $in: authorIds } })
-                  .select("username bio profile_image")
+    const [authors, viewerLikes, viewerSaves, recentByPost] =
+        await Promise.all([
+            authorIds.length
+                ? userModel
+                      .find({ _id: { $in: authorIds } })
+                      .select("username name bio profile_image")
+                      .lean()
+                : [],
+            viewerUsername && ids.length
+                ? likeModel
+                      .find({ post: { $in: ids }, user: viewerUsername })
+                      .select("post")
+                      .lean()
+                : [],
+            viewerUsername && ids.length
+                ? saveModel
+                      .find({ post: { $in: ids }, user: viewerUsername })
+                      .select("post")
+                      .lean()
+                : [],
+            includeRecentComments ? fetchRecentComments(ids) : new Map(),
+        ]);
+
+    const viewerFollows =
+        viewerUsername && authors.length
+            ? await followModel
+                  .find({
+                      follower: viewerUsername,
+                      followee: { $in: authors.map((a) => a.username) },
+                      status: { $ne: "rejected" },
+                  })
+                  .select("followee")
                   .lean()
-            : [],
-        viewerUsername && ids.length
-            ? likeModel
-                  .find({ post: { $in: ids }, user: viewerUsername })
-                  .select("post")
-                  .lean()
-            : [],
-        includeRecentComments ? fetchRecentComments(ids) : new Map(),
-    ]);
+            : [];
 
     const authorMap = new Map(
         authors.map((author) => [String(author._id), author])
@@ -109,22 +131,43 @@ const fetchPostsPage = async ({
     const likedSet = new Set(
         viewerLikes.map((like) => String(like.post))
     );
+    const savedSet = new Set(
+        viewerSaves.map((save) => String(save.post))
+    );
+    const followingSet = new Set(
+        viewerFollows.map((follow) => follow.followee)
+    );
 
-    const posts = page.map((post) => ({
-        ...post,
-        likesCount: Number(post.likesCount) || 0,
-        commentsCount: Number(post.commentsCount) || 0,
-        isLiked: likedSet.has(String(post._id)),
-        recentComments: recentByPost.get(String(post._id)) || [],
-        user:
-            authorMap.get(String(post.user)) || {
-                _id: post.user,
-                username: "unknown",
-                bio: "",
-                profile_image: "",
-            },
-        thumbnail_url: getThumbnailUrl(post.image_url),
-    }));
+    const posts = page.map((post) => {
+        const author = authorMap.get(String(post.user));
+
+        return {
+            ...post,
+            likesCount: Number(post.likesCount) || 0,
+            commentsCount: Number(post.commentsCount) || 0,
+            isLiked: likedSet.has(String(post._id)),
+            isSaved: savedSet.has(String(post._id)),
+            recentComments: recentByPost.get(String(post._id)) || [],
+            user: author
+                ? {
+                      ...author,
+                      name: author.name ?? "",
+                      isFollowing:
+                          Boolean(viewerUsername) &&
+                          author.username !== viewerUsername &&
+                          followingSet.has(author.username),
+                  }
+                : {
+                      _id: post.user,
+                      username: "unknown",
+                      name: "",
+                      bio: "",
+                      profile_image: "",
+                      isFollowing: false,
+                  },
+            thumbnail_url: getThumbnailUrl(post.image_url),
+        };
+    });
 
     return {
         posts,

@@ -19,6 +19,12 @@ const userSchema = new mongoose.Schema(
             required: [true, "Password is Required"],
             select: false,
         },
+        name: {
+            type: String,
+            default: "",
+            trim: true,
+            maxlength: [60, "Name cannot be longer than 60 characters"],
+        },
         bio: {
             type: String,
             default: "",

@@ -125,7 +125,17 @@ const buildPostPipeline = ({
                 pipeline: [
                     {
                         $match: {
-                            $expr: { $eq: ["$post", "$$postId"] },
+                            $expr: {
+                                $and: [
+                                    { $eq: ["$post", "$$postId"] },
+                                    {
+                                        $eq: [
+                                            { $ifNull: ["$parent", null] },
+                                            null,
+                                        ],
+                                    },
+                                ],
+                            },
                         },
                     },
                     { $sort: { _id: 1 } },
@@ -228,10 +238,23 @@ const buildPostPipeline = ({
     return pipeline;
 };
 
-const serializePost = (post) => ({
-    ...post,
-    thumbnail_url: getThumbnailUrl(post.image_url),
-});
+const serializePost = (post) => {
+    const user =
+        post.user && typeof post.user === "object"
+            ? {
+                  ...post.user,
+                  name: post.user.name ?? "",
+                  isFollowing: Boolean(post.user.isFollowing),
+              }
+            : post.user;
+
+    return {
+        ...post,
+        user,
+        isSaved: Boolean(post.isSaved),
+        thumbnail_url: getThumbnailUrl(post.image_url),
+    };
+};
 
 const serializePosts = (rows, limit) => {
     const hasMore = rows.length > limit;

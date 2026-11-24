@@ -7,6 +7,10 @@ const compression = require("compression");
 const authRouter = require("../routes/auth.route");
 const postRouter = require("../routes/post.route");
 const userRouter = require("../routes/user.route");
+const messageRouter = require("../routes/message.route");
+const notificationRouter = require("../routes/notification.route");
+const searchRouter = require("../routes/search.route");
+const storyRouter = require("../routes/story.route");
 const errorHandler = require("../middleware/error.middleware");
 
 const app = express();
@@ -56,6 +60,10 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postRouter);
 app.use("/api/users", userRouter);
+app.use("/api/messages", messageRouter);
+app.use("/api/notifications", notificationRouter);
+app.use("/api/search", searchRouter);
+app.use("/api/stories", storyRouter);
 
 app.use((req, res) => {
     res.status(404).json({ message: "API route not found." });

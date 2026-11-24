@@ -4,10 +4,19 @@ const postModel = require("../models/post.model");
 const commentModel = require("../models/comment.model");
 const likeModel = require("../models/like.model");
 const followModel = require("../models/follow.model");
+const conversationModel = require("../models/conversation.model");
+const messageModel = require("../models/message.model");
+const notificationModel = require("../models/notification.model");
+const saveModel = require("../models/save.model");
+const storyModel = require("../models/story.model");
+const blockModel = require("../models/block.model");
+const reportModel = require("../models/report.model");
+const commentLikeModel = require("../models/commentLike.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const BIO_LIMIT = 160;
+const NAME_LIMIT = 60;
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 72;
 const DEMO_EMAIL = "demo@mosaic.local";
@@ -21,6 +30,7 @@ const cookieOptions = {
 const publicUser = (user) => ({
     _id: user._id,
     username: user.username,
+    name: user.name ?? "",
     email: user.email,
     bio: user.bio ?? "",
     profileImage: user.profile_image,
@@ -50,8 +60,15 @@ const normalizeImageUrl = (value) => {
 };
 
 const registerController = async (req, res) => {
-    const { username, email, password, bio, profileImage, profile_image } =
-        req.body ?? {};
+    const {
+        username,
+        email,
+        password,
+        name,
+        bio,
+        profileImage,
+        profile_image,
+    } = req.body ?? {};
     const cleanUsername =
         typeof username === "string" ? username.trim() : "";
     const cleanEmail = typeof email === "string" ? email.trim() : "";
@@ -65,6 +82,20 @@ const registerController = async (req, res) => {
     if (password.length < 6) {
         return res.status(400).json({
             message: "Password must be at least 6 characters.",
+        });
+    }
+
+    if (name !== undefined && typeof name !== "string") {
+        return res.status(400).json({
+            message: "Name must be text.",
+        });
+    }
+
+    const cleanName = typeof name === "string" ? name.trim() : "";
+
+    if (cleanName.length > NAME_LIMIT) {
+        return res.status(400).json({
+            message: `Names are limited to ${NAME_LIMIT} characters.`,
         });
     }
 
@@ -102,6 +133,7 @@ const registerController = async (req, res) => {
         username: cleanUsername,
         email: cleanEmail,
         password: hashedPassword,
+        name: cleanName,
         bio: cleanBio,
         ...(image.image ? { profile_image: image.image } : {}),
     });
@@ -272,14 +304,26 @@ const changePasswordController = async (req, res) => {
 const exportAccountController = async (req, res) => {
     const user = await userModel
         .findById(req.user.id)
-        .select("username email bio profile_image createdAt updatedAt")
+        .select("username name email bio profile_image createdAt updatedAt")
         .lean();
 
     if (!user) {
         return res.status(404).json({ message: "User Not Found" });
     }
 
-    const [posts, comments, likes, follows] = await Promise.all([
+    const [
+        posts,
+        comments,
+        likes,
+        follows,
+        conversations,
+        notifications,
+        saves,
+        stories,
+        blocks,
+        reports,
+        commentLikes,
+    ] = await Promise.all([
         postModel
             .find({ user: user._id })
             .sort({ createdAt: 1, _id: 1 })
@@ -301,7 +345,63 @@ const exportAccountController = async (req, res) => {
             })
             .sort({ createdAt: 1, _id: 1 })
             .lean(),
+        conversationModel
+            .find({ participants: user.username })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        notificationModel
+            .find({
+                $or: [
+                    { recipient: user.username },
+                    { actor: user.username },
+                ],
+            })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        saveModel
+            .find({ user: user.username })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        storyModel
+            .find({ user: user._id })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        blockModel
+            .find({
+                $or: [
+                    { blocker: user.username },
+                    { blocked: user.username },
+                ],
+            })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        reportModel
+            .find({ reporter: user.username })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
+        commentLikeModel
+            .find({ user: user.username })
+            .sort({ createdAt: 1, _id: 1 })
+            .lean(),
     ]);
+
+    const conversationIds = conversations.map(
+        (conversation) => conversation._id
+    );
+    const messages = conversationIds.length
+        ? await messageModel
+              .find({
+                  $or: [
+                      { conversation: { $in: conversationIds } },
+                      { sender: user.username },
+                  ],
+              })
+              .sort({ createdAt: 1, _id: 1 })
+              .lean()
+        : await messageModel
+              .find({ sender: user.username })
+              .sort({ createdAt: 1, _id: 1 })
+              .lean();
 
     const following = follows.filter(
         (follow) => follow.follower === user.username
@@ -324,6 +424,7 @@ const exportAccountController = async (req, res) => {
         account: {
             id: String(user._id),
             username: user.username,
+            name: user.name ?? "",
             email: user.email,
             bio: user.bio ?? "",
             profileImage: user.profile_image,
@@ -340,9 +441,21 @@ const exportAccountController = async (req, res) => {
         comments: comments.map((comment) => ({
             id: String(comment._id),
             postId: String(comment.post),
+            parentId: comment.parent ? String(comment.parent) : null,
             text: comment.text,
+            likesCount: Number(comment.likesCount) || 0,
             createdAt: comment.createdAt,
         })),
+        commentReplies: comments
+            .filter((comment) => comment.parent)
+            .map((comment) => ({
+                id: String(comment._id),
+                postId: String(comment.post),
+                parentId: String(comment.parent),
+                text: comment.text,
+                likesCount: Number(comment.likesCount) || 0,
+                createdAt: comment.createdAt,
+            })),
         likes: likes.map((like) => ({
             id: String(like._id),
             postId: String(like.post),
@@ -360,6 +473,68 @@ const exportAccountController = async (req, res) => {
                 createdAt: follow.createdAt,
             })),
         },
+        conversations: conversations.map((conversation) => ({
+            id: String(conversation._id),
+            participants: conversation.participants,
+            lastMessage: conversation.lastMessage ?? "",
+            lastMessageAt: conversation.lastMessageAt,
+            lastSender: conversation.lastSender ?? "",
+            createdAt: conversation.createdAt,
+            updatedAt: conversation.updatedAt,
+        })),
+        messages: messages.map((message) => ({
+            id: String(message._id),
+            conversationId: String(message.conversation),
+            sender: message.sender,
+            text: message.text ?? "",
+            postId: message.post ? String(message.post) : null,
+            readBy: message.readBy ?? [],
+            createdAt: message.createdAt,
+        })),
+        notifications: notifications.map((notification) => ({
+            id: String(notification._id),
+            recipient: notification.recipient,
+            actor: notification.actor,
+            type: notification.type,
+            postId: notification.post ? String(notification.post) : null,
+            commentId: notification.comment
+                ? String(notification.comment)
+                : null,
+            read: Boolean(notification.read),
+            createdAt: notification.createdAt,
+        })),
+        saves: saves.map((save) => ({
+            id: String(save._id),
+            postId: String(save.post),
+            createdAt: save.createdAt,
+        })),
+        stories: stories.map((story) => ({
+            id: String(story._id),
+            imageUrl: story.image_url,
+            thumbnailUrl: story.thumbnail_url,
+            caption: story.caption ?? "",
+            seenBy: story.seenBy ?? [],
+            expiresAt: story.expiresAt,
+            createdAt: story.createdAt,
+        })),
+        blocks: blocks.map((block) => ({
+            id: String(block._id),
+            blocker: block.blocker,
+            blocked: block.blocked,
+            createdAt: block.createdAt,
+        })),
+        reports: reports.map((report) => ({
+            id: String(report._id),
+            targetType: report.targetType,
+            targetId: report.targetId,
+            reason: report.reason,
+            createdAt: report.createdAt,
+        })),
+        commentLikes: commentLikes.map((commentLike) => ({
+            id: String(commentLike._id),
+            commentId: String(commentLike.comment),
+            createdAt: commentLike.createdAt,
+        })),
     });
 };
 
@@ -395,16 +570,76 @@ const deleteAccountController = async (req, res) => {
         });
     }
 
-    const postIds = await postModel.find({ user: user._id }).distinct("_id");
+    const postIds = await postModel
+        .find({ user: user._id })
+        .distinct("_id");
+    const baseCommentIds = await commentModel
+        .find({
+            $or: [
+                { user: user.username },
+                { post: { $in: postIds } },
+            ],
+        })
+        .distinct("_id");
+    const replyIds = baseCommentIds.length
+        ? await commentModel
+              .find({ parent: { $in: baseCommentIds } })
+              .distinct("_id")
+        : [];
+    const commentIdMap = new Map();
+
+    [...baseCommentIds, ...replyIds].forEach((id) => {
+        commentIdMap.set(String(id), id);
+    });
+
+    const commentIds = [...commentIdMap.values()];
+    const conversationIds = await conversationModel
+        .find({ participants: user.username })
+        .distinct("_id");
     const token = req.cookies?.token;
 
     await Promise.all([
-        commentModel.deleteMany({
+        commentLikeModel.deleteMany({
+            $or: [
+                { user: user.username },
+                { comment: { $in: commentIds } },
+            ],
+        }),
+        notificationModel.deleteMany({
+            $or: [
+                { recipient: user.username },
+                { actor: user.username },
+                { post: { $in: postIds } },
+                { comment: { $in: commentIds } },
+            ],
+        }),
+        saveModel.deleteMany({
             $or: [
                 { user: user.username },
                 { post: { $in: postIds } },
             ],
         }),
+        storyModel.deleteMany({
+            $or: [
+                { user: user._id },
+                { username: user.username },
+            ],
+        }),
+        blockModel.deleteMany({
+            $or: [
+                { blocker: user.username },
+                { blocked: user.username },
+            ],
+        }),
+        reportModel.deleteMany({ reporter: user.username }),
+        conversationModel.deleteMany({ _id: { $in: conversationIds } }),
+        messageModel.deleteMany({
+            $or: [
+                { conversation: { $in: conversationIds } },
+                { sender: user.username },
+            ],
+        }),
+        commentModel.deleteMany({ _id: { $in: commentIds } }),
         likeModel.deleteMany({
             $or: [
                 { user: user.username },

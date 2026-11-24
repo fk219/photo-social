@@ -3,40 +3,47 @@ const mongoose = require("mongoose");
 const postModel = require("../models/post.model");
 const likeModel = require("../models/like.model");
 const commentModel = require("../models/comment.model");
+const commentLikeModel = require("../models/commentLike.model");
 const userModel = require("../models/user.model");
 const followModel = require("../models/follow.model");
+const saveModel = require("../models/save.model");
+const notificationModel = require("../models/notification.model");
 const {
     parseLimit,
     serializePost,
 } = require("../utils/postPipeline");
 const { fetchPostsPage } = require("../utils/postFeed");
 const { getOrLoadPublicFeed } = require("../utils/feedCache");
-const { resolvePostCursor } = require("../utils/cursor");
-
-const ImageKit = require("@imagekit/nodejs/index.js");
-const { toFile } = require("@imagekit/nodejs/index.js");
-
-const imagekitInstance = new ImageKit({
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-});
-
-const hasValidImageSignature = (buffer) => {
-    if (!Buffer.isBuffer(buffer) || buffer.length < 12) return false;
-
-    const jpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
-    const png =
-        buffer[0] === 0x89 &&
-        buffer[1] === 0x50 &&
-        buffer[2] === 0x4e &&
-        buffer[3] === 0x47;
-    const webp =
-        buffer.toString("ascii", 0, 4) === "RIFF" &&
-        buffer.toString("ascii", 8, 12) === "WEBP";
-
-    return jpeg || png || webp;
-};
+const { resolvePostCursor, resolveObjectIdCursor } = require("../utils/cursor");
+const {
+    getBlockedUsernames,
+    getBlockedAuthorIds,
+    isBlockedBetween,
+} = require("../utils/social");
+const {
+    notifyPostLike,
+    removePostLikeNotification,
+    notifyMentions,
+} = require("../utils/notify");
+const {
+    hasValidImageSignature,
+    uploadImageBuffer,
+} = require("../utils/upload");
 
 const findCursorPost = (rawCursor) => resolvePostCursor(postModel, rawCursor);
+
+const loadPostAuthor = async (postId) => {
+    const post = await postModel.findById(postId).select("user").lean();
+
+    if (!post) return { post: null, author: null };
+
+    const author = await userModel
+        .findById(post.user)
+        .select("username")
+        .lean();
+
+    return { post, author };
+};
 
 const createPostController = async (req, res) => {
     if (!req.file) {
@@ -64,22 +71,12 @@ const createPostController = async (req, res) => {
 
     let uploadedFile;
 
-    const extension =
-        req.file.mimetype === "image/png"
-            ? ".png"
-            : req.file.mimetype === "image/webp"
-              ? ".webp"
-              : ".jpg";
-    const uploadName = `post-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)}${extension}`;
-
     try {
-        uploadedFile = await imagekitInstance.files.upload({
-            file: await toFile(Buffer.from(req.file.buffer), uploadName),
-            fileName: uploadName,
-            folder: "insta-clone",
-        });
+        uploadedFile = await uploadImageBuffer(
+            req.file.buffer,
+            req.file.mimetype,
+            { folder: "insta-clone", prefix: "post" }
+        );
     } catch (error) {
         console.error("ImageKit upload failed:", error?.message || error);
         return res.status(502).json({
@@ -96,8 +93,19 @@ const createPostController = async (req, res) => {
 
     const author = await userModel
         .findById(req.user.id)
-        .select("username bio profile_image")
+        .select("username name bio profile_image")
         .lean();
+
+    try {
+        await notifyMentions({
+            text: caption,
+            actor: req.user.username,
+            postId: post._id,
+            exclude: [req.user.username],
+        });
+    } catch (error) {
+        console.error("Post mention notification failed:", error.message);
+    }
 
     return res.status(201).json({
         message: "Post Created Successfully",
@@ -106,7 +114,10 @@ const createPostController = async (req, res) => {
             likesCount: 0,
             commentsCount: 0,
             isLiked: false,
-            user: author,
+            isSaved: false,
+            user: author
+                ? { ...author, isFollowing: false }
+                : { username: "unknown", name: "", bio: "", profile_image: "" },
         }),
     });
 };
@@ -115,8 +126,18 @@ const getPostController = async (req, res) => {
     const posts = await postModel
         .find({ user: req.user.id })
         .sort({ _id: -1 })
-        .populate("user", "username bio profile_image")
+        .populate("user", "username name bio profile_image")
         .lean();
+
+    const ids = posts.map((post) => post._id);
+    const saves =
+        ids.length > 0
+            ? await saveModel
+                  .find({ user: req.user.username, post: { $in: ids } })
+                  .select("post")
+                  .lean()
+            : [];
+    const savedSet = new Set(saves.map((save) => String(save.post)));
 
     res.status(200).json({
         message: "All Posts Fetched Successfully",
@@ -126,6 +147,10 @@ const getPostController = async (req, res) => {
                 likesCount: post.likesCount ?? 0,
                 commentsCount: post.commentsCount ?? 0,
                 isLiked: false,
+                isSaved: savedSet.has(String(post._id)),
+                user: post.user
+                    ? { ...post.user, isFollowing: false }
+                    : post.user,
             })
         ),
     });
@@ -140,7 +165,7 @@ const getPostDetailsController = async (req, res) => {
 
     const post = await postModel
         .findById(postId)
-        .populate("user", "username bio profile_image")
+        .populate("user", "username name bio profile_image")
         .lean();
 
     if (!post) {
@@ -157,9 +182,13 @@ const getPostDetailsController = async (req, res) => {
         });
     }
 
-    const [likesCount, commentsCount] = await Promise.all([
+    const [likesCount, commentsCount, isSaved] = await Promise.all([
         likeModel.countDocuments({ post: postId }),
         commentModel.countDocuments({ post: postId }),
+        saveModel.exists({
+            post: postId,
+            user: req.user.username,
+        }),
     ]);
 
     res.status(200).json({
@@ -168,6 +197,10 @@ const getPostDetailsController = async (req, res) => {
             ...post,
             likesCount,
             commentsCount,
+            isSaved: Boolean(isSaved),
+            user: post.user
+                ? { ...post.user, isFollowing: false }
+                : post.user,
         }),
     });
 };
@@ -191,6 +224,9 @@ const getFeedController = async (req, res) => {
         return res.status(400).json({ message: error });
     }
 
+    const blockedIds = viewerUsername
+        ? (await getBlockedAuthorIds(viewerUsername)).ids
+        : [];
     let match = {};
 
     if (scope === "following") {
@@ -214,7 +250,9 @@ const getFeedController = async (req, res) => {
             });
         }
 
-        match = { user: { $in: authorIds } };
+        match = { user: { $in: authorIds, $nin: blockedIds } };
+    } else if (blockedIds.length > 0) {
+        match = { user: { $nin: blockedIds } };
     }
 
     const cacheable = scope === "all" && !viewerUsername;
@@ -262,6 +300,241 @@ const getFeedController = async (req, res) => {
     });
 };
 
+const getPostByIdController = async (req, res) => {
+    const { postId } = req.params;
+
+    if (!mongoose.isValidObjectId(postId)) {
+        return res.status(400).json({ message: "Invalid post id." });
+    }
+
+    const viewerUsername = req.user?.username ?? null;
+    const { posts } = await fetchPostsPage({
+        match: { _id: postId },
+        limit: 1,
+        viewerUsername,
+        includeRecentComments: true,
+    });
+
+    if (posts.length === 0) {
+        return res.status(404).json({ message: "Post Not Found" });
+    }
+
+    const post = posts[0];
+
+    if (
+        viewerUsername &&
+        post.user?.username &&
+        (await isBlockedBetween(viewerUsername, post.user.username))
+    ) {
+        return res.status(404).json({ message: "Post Not Found" });
+    }
+
+    return res.status(200).json({
+        message: "Post fetched successfully.",
+        post,
+    });
+};
+
+const getSavedPostsController = async (req, res) => {
+    const limit = parseLimit(req.query.limit, 12, 30);
+    const { cursorId, error } = resolveObjectIdCursor(req.query.cursor);
+
+    if (error) {
+        return res.status(400).json({ message: error });
+    }
+
+    const query = { user: req.user.username };
+
+    if (cursorId) {
+        query._id = { $lt: cursorId };
+    }
+
+    const rows = await saveModel
+        .find(query)
+        .sort({ _id: -1 })
+        .limit(limit + 1)
+        .select("post")
+        .lean();
+
+    const hasMore = rows.length > limit;
+    const page = rows.slice(0, limit);
+    const postIds = page.map((save) => save.post);
+    const viewerUsername = req.user.username;
+
+    const { posts: fetchedPosts } =
+        postIds.length > 0
+            ? await fetchPostsPage({
+                  match: { _id: { $in: postIds } },
+                  limit: postIds.length,
+                  viewerUsername,
+                  includeRecentComments: true,
+              })
+            : { posts: [] };
+
+    const postMap = new Map(
+        fetchedPosts.map((post) => [String(post._id), post])
+    );
+    const posts = page
+        .map((save) => postMap.get(String(save.post)))
+        .filter(Boolean)
+        .map((post) => ({ ...post, isSaved: true }));
+
+    return res.status(200).json({
+        message: "Saved posts fetched successfully.",
+        posts,
+        nextCursor:
+            hasMore && page.length > 0
+                ? String(page[page.length - 1]._id)
+                : null,
+    });
+};
+
+const savePostController = async (req, res) => {
+    const { postId } = req.params;
+
+    if (!mongoose.isValidObjectId(postId)) {
+        return res.status(400).json({ message: "Invalid post id." });
+    }
+
+    const { post, author } = await loadPostAuthor(postId);
+
+    if (!post) {
+        return res.status(404).json({ message: "Post Not Found" });
+    }
+
+    if (
+        author &&
+        (await isBlockedBetween(req.user.username, author.username))
+    ) {
+        return res.status(403).json({
+            message: "You cannot interact with this post.",
+        });
+    }
+
+    await saveModel.findOneAndUpdate(
+        { user: req.user.username, post: postId },
+        {
+            $setOnInsert: {
+                user: req.user.username,
+                post: postId,
+            },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    const savedCount = await saveModel.countDocuments({ post: postId });
+
+    return res.status(200).json({ isSaved: true, savedCount });
+};
+
+const unSavePostController = async (req, res) => {
+    const { postId } = req.params;
+
+    if (!mongoose.isValidObjectId(postId)) {
+        return res.status(400).json({ message: "Invalid post id." });
+    }
+
+    const exists = await postModel.exists({ _id: postId });
+
+    if (!exists) {
+        return res.status(404).json({ message: "Post Not Found" });
+    }
+
+    await saveModel.deleteOne({
+        user: req.user.username,
+        post: postId,
+    });
+
+    const savedCount = await saveModel.countDocuments({ post: postId });
+
+    return res.status(200).json({ isSaved: false, savedCount });
+};
+
+const getPostLikesController = async (req, res) => {
+    const { postId } = req.params;
+
+    if (!mongoose.isValidObjectId(postId)) {
+        return res.status(400).json({ message: "Invalid post id." });
+    }
+
+    const exists = await postModel.exists({ _id: postId });
+
+    if (!exists) {
+        return res.status(404).json({ message: "Post Not Found" });
+    }
+
+    const limit = parseLimit(req.query.limit, 30, 50);
+    const { cursorId, error } = resolveObjectIdCursor(req.query.cursor);
+
+    if (error) {
+        return res.status(400).json({ message: error });
+    }
+
+    const viewerUsername = req.user?.username ?? null;
+    const query = { post: postId };
+
+    if (cursorId) {
+        query._id = { $lt: cursorId };
+    }
+
+    if (viewerUsername) {
+        const blocked = await getBlockedUsernames(viewerUsername);
+
+        if (blocked.size > 0) {
+            query.user = { $nin: [...blocked] };
+        }
+    }
+
+    const rows = await likeModel
+        .find(query)
+        .sort({ _id: -1 })
+        .limit(limit + 1)
+        .select("user")
+        .lean();
+
+    const hasMore = rows.length > limit;
+    const page = rows.slice(0, limit);
+    const usernames = [...new Set(page.map((like) => like.user))];
+    const users = await userModel
+        .find({ username: { $in: usernames } })
+        .select("username name profile_image")
+        .lean();
+    const viewerFollows =
+        viewerUsername && usernames.length
+            ? await followModel
+                  .find({
+                      follower: viewerUsername,
+                      followee: { $in: usernames },
+                      status: { $ne: "rejected" },
+                  })
+                  .select("followee")
+                  .lean()
+            : [];
+    const userMap = new Map(users.map((user) => [user.username, user]));
+    const followingSet = new Set(
+        viewerFollows.map((follow) => follow.followee)
+    );
+
+    return res.status(200).json({
+        users: page
+            .map((like) => userMap.get(like.user))
+            .filter(Boolean)
+            .map((user) => ({
+                username: user.username,
+                name: user.name ?? "",
+                profile_image: user.profile_image ?? "",
+                isFollowing:
+                    Boolean(viewerUsername) &&
+                    user.username !== viewerUsername &&
+                    followingSet.has(user.username),
+            })),
+        nextCursor:
+            hasMore && page.length > 0
+                ? String(page[page.length - 1]._id)
+                : null,
+    });
+};
+
 const likePostController = async (req, res) => {
     const { postId } = req.params;
 
@@ -269,19 +542,45 @@ const likePostController = async (req, res) => {
         return res.status(400).json({ message: "Invalid post id." });
     }
 
-    const doesPostExist = await postModel.exists({ _id: postId });
+    const { post, author } = await loadPostAuthor(postId);
 
-    if (!doesPostExist) {
+    if (!post) {
         return res.status(404).json({
             message: "The Post You are trying to Like Does Not Exists",
         });
     }
+
+    if (
+        author &&
+        (await isBlockedBetween(req.user.username, author.username))
+    ) {
+        return res.status(403).json({
+            message: "You cannot interact with this post.",
+        });
+    }
+
+    const existing = await likeModel
+        .findOne({ post: postId, user: req.user.username })
+        .select("_id")
+        .lean();
 
     await likeModel.findOneAndUpdate(
         { post: postId, user: req.user.username },
         { $setOnInsert: { post: postId, user: req.user.username } },
         { upsert: true, new: true, setDefaultsOnInsert: true }
     );
+
+    if (!existing && author?.username) {
+        try {
+            await notifyPostLike({
+                recipient: author.username,
+                actor: req.user.username,
+                postId,
+            });
+        } catch (error) {
+            console.error("Like notification failed:", error.message);
+        }
+    }
 
     const likesCount = await likeModel.countDocuments({ post: postId });
     await postModel.updateOne({ _id: postId }, { $set: { likesCount } });
@@ -313,6 +612,15 @@ const unLikePostController = async (req, res) => {
         user: req.user.username,
     });
 
+    try {
+        await removePostLikeNotification({
+            actor: req.user.username,
+            postId,
+        });
+    } catch (error) {
+        console.error("Like notification cleanup failed:", error.message);
+    }
+
     const likesCount = await likeModel.countDocuments({ post: postId });
     await postModel.updateOne({ _id: postId }, { $set: { likesCount } });
 
@@ -342,10 +650,22 @@ const deletePostController = async (req, res) => {
         });
     }
 
+    const commentIds = await commentModel
+        .find({ post: postId })
+        .distinct("_id");
+
     await Promise.all([
         postModel.deleteOne({ _id: postId }),
         likeModel.deleteMany({ post: postId }),
         commentModel.deleteMany({ post: postId }),
+        commentLikeModel.deleteMany({ comment: { $in: commentIds } }),
+        saveModel.deleteMany({ post: postId }),
+        notificationModel.deleteMany({
+            $or: [
+                { post: postId },
+                { comment: { $in: commentIds } },
+            ],
+        }),
     ]);
 
     return res.status(200).json({
@@ -359,6 +679,11 @@ module.exports = {
     getPostController,
     getPostDetailsController,
     getFeedController,
+    getPostByIdController,
+    getSavedPostsController,
+    savePostController,
+    unSavePostController,
+    getPostLikesController,
     likePostController,
     unLikePostController,
     deletePostController,

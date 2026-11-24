@@ -24,4 +24,20 @@ const postLimiter = createLimiter({
     message: "Too many Mosaic requests. Try again in a minute.",
 });
 
-module.exports = { authLimiter, accountLimiter, postLimiter };
+const socialLimiter = createLimiter({
+    max: 60,
+    message: "Too many social requests. Try again in a minute.",
+});
+
+const mediaLimiter = createLimiter({
+    max: 10,
+    message: "Too many uploads. Try again in a minute.",
+});
+
+module.exports = {
+    authLimiter,
+    accountLimiter,
+    postLimiter,
+    socialLimiter,
+    mediaLimiter,
+};

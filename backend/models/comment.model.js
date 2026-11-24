@@ -19,11 +19,22 @@ const commentSchema = new mongoose.Schema(
             trim: true,
             maxlength: [500, "Comment cannot be longer than 500 characters"],
         },
+        parent: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "comments",
+            default: null,
+        },
+        likesCount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
     },
     { timestamps: true }
 );
 
 commentSchema.index({ post: 1, _id: -1 });
+commentSchema.index({ post: 1, parent: 1, _id: -1 });
 
 const commentModel = mongoose.model("comments", commentSchema);
 

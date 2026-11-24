@@ -7,6 +7,11 @@ const {
     getPostController,
     getPostDetailsController,
     getFeedController,
+    getPostByIdController,
+    getSavedPostsController,
+    savePostController,
+    unSavePostController,
+    getPostLikesController,
     likePostController,
     unLikePostController,
     deletePostController,
@@ -14,51 +19,50 @@ const {
 const {
     createCommentController,
     getCommentsController,
+    getCommentRepliesController,
+    likeCommentController,
+    unLikeCommentController,
     deleteCommentController,
 } = require("../controllers/comment.controller");
-
-const multer = require("multer");
-
-const ALLOWED_IMAGE_TYPES = new Set([
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-]);
-
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-        fileSize: 5 * 1024 * 1024,
-        files: 1,
-    },
-    fileFilter: (req, file, cb) => {
-        if (!ALLOWED_IMAGE_TYPES.has(file.mimetype)) {
-            const error = new Error(
-                "Unsupported image type. Use a JPEG, PNG, or WebP photograph."
-            );
-            error.status = 400;
-            return cb(error);
-        }
-
-        cb(null, true);
-    },
-});
+const { upload } = require("../utils/upload");
 
 const postRouter = express.Router();
 
 postRouter.use(postLimiter);
 
 postRouter.get("/feed", identifyUserReadOnly, getFeedController);
+postRouter.get("/saved", identifyUser, getSavedPostsController);
 postRouter.get("/", identifyUser, getPostController);
 postRouter.post("/", identifyUser, upload.single("image"), createPostController);
 
+postRouter.get("/:postId", identifyUserReadOnly, getPostByIdController);
+
 postRouter.get("/:postId/comments", identifyUserReadOnly, getCommentsController);
 postRouter.post("/:postId/comments", identifyUser, createCommentController);
+postRouter.get(
+    "/:postId/comments/:commentId/replies",
+    identifyUserReadOnly,
+    getCommentRepliesController
+);
+postRouter.post(
+    "/:postId/comments/:commentId/like",
+    identifyUser,
+    likeCommentController
+);
+postRouter.delete(
+    "/:postId/comments/:commentId/like",
+    identifyUser,
+    unLikeCommentController
+);
 postRouter.delete(
     "/:postId/comments/:commentId",
     identifyUser,
     deleteCommentController
 );
+
+postRouter.get("/:postId/likes", identifyUserReadOnly, getPostLikesController);
+postRouter.post("/:postId/save", identifyUser, savePostController);
+postRouter.delete("/:postId/save", identifyUser, unSavePostController);
 
 postRouter.post("/details/:postId", identifyUser, getPostDetailsController);
 postRouter.post("/like/:postId", identifyUser, likePostController);
