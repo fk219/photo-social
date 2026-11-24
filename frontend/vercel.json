@@ -4,6 +4,6 @@
       "source": "/api/:path*",
       "destination": "https://insta-clone-backend-n518.onrender.com/api/:path*"
     },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!_vercel/).*)", "destination": "/index.html" }
   ]
 }
