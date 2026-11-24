@@ -21,7 +21,7 @@ const accountLimiter = createLimiter({
 
 const postLimiter = createLimiter({
     max: 30,
-    message: "Too many journal requests. Try again in a minute.",
+    message: "Too many Mosaic requests. Try again in a minute.",
 });
 
 module.exports = { authLimiter, accountLimiter, postLimiter };

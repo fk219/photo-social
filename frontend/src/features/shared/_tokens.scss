@@ -1,26 +1,68 @@
-// Photo journal design tokens
-$paper: #f4f5f2;
-$paper-deep: #ebece6;
-$ink: #12130f;
-$shutter: #c93a1d;
-$shutter-ink: #a83218;
-$graphite: #62675d;
-$graphite-deep: #565b51;
-$hairline: #d8dad2;
-$card: #ffffff;
+// Mosaic design tokens: gallery after hours.
+$ink: #0a0b0e;
+$ink-raised: #12141a;
+$ink-raised-soft: #171a21;
+$ink-line: rgba(246, 240, 228, 0.13);
+$ink-line-strong: rgba(246, 240, 228, 0.26);
+
+$gallery: #f6efe3;
+$gallery-soft: #fbf6ec;
+$gallery-deep: #e9ddc9;
+$gallery-ink: #16130d;
+$gallery-muted: #5c574c;
+$gallery-line: rgba(22, 19, 13, 0.16);
+$gallery-line-strong: rgba(22, 19, 13, 0.34);
+
+$cobalt: #4169ff;
+$cobalt-light: #8fa5ff;
+$cobalt-deep: #1d3ecf;
+$vermilion: #ff5b3d;
+$vermilion-light: #ff927c;
+$vermilion-deep: #a92b13;
+
+$cream: #f6efe3;
+$cream-muted: #b9b2a4;
+$cream-faint: #8b8579;
 
 $font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-$font-body: "Manrope", "Helvetica Neue", Arial, sans-serif;
-$font-mono: "Space Mono", "SFMono-Regular", Consolas, monospace;
+$font-body: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
 
 $ease-out: cubic-bezier(0.22, 0.7, 0.3, 1);
+$radius-card: 5px;
+$radius-control: 3px;
 
 @mixin eyebrow {
-  font-family: $font-mono;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-family: $font-body;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
   line-height: 1.4;
   text-transform: uppercase;
-  color: $graphite-deep;
+}
+
+@mixin paper-surface {
+  --focus: #{$cobalt-deep};
+  --button-ink: #{$gallery-ink};
+  --button-line: #{$gallery-line-strong};
+  --button-wash: rgba(22, 19, 13, 0.06);
+  --quiet-ink: #{$gallery-muted};
+  --quiet-hover: #{$gallery-ink};
+  background-color: $gallery;
+  color: $gallery-ink;
+}
+
+@mixin display-type {
+  font-family: $font-display;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 0.95;
+}
+
+@mixin quiet-label {
+  color: $cream-faint;
+  font-family: $font-body;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
 }

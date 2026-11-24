@@ -6,7 +6,7 @@ export const getUserAvatar = (user) => {
 export const getInitials = (name = "") => {
   const clean = String(name).replace(/^@/, "").trim();
 
-  if (!clean) return "I";
+  if (!clean) return "M";
 
   const parts = clean.split(/\s+/);
 
@@ -17,15 +17,16 @@ export const getInitials = (name = "") => {
   return clean.slice(0, 2).toUpperCase();
 };
 
-export const formatFrameNumber = (index = 0) =>
-  String(index + 1).padStart(3, "0");
-
-export const formatJournalDate = (value) => {
+const toDate = (value) => {
   if (!value) return null;
 
   const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 
-  if (Number.isNaN(date.getTime())) return null;
+export const formatLongDate = (value) => {
+  const date = toDate(value);
+  if (!date) return null;
 
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
@@ -37,22 +38,41 @@ export const formatJournalDate = (value) => {
     .toUpperCase();
 };
 
-export const formatNoteDate = (value) => {
-  if (!value) return null;
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) return null;
+export const formatMonthDate = (value) => {
+  const date = toDate(value);
+  if (!date) return null;
 
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
   })
     .format(date)
     .replace(/\./g, "")
     .toUpperCase();
+};
+
+export const formatFullDate = (value) => {
+  const date = toDate(value);
+  if (!date) return null;
+
+  return new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
+
+export const formatRelativeTime = (value) => {
+  const date = toDate(value);
+  if (!date) return null;
+
+  const seconds = Math.round((Date.now() - date.getTime()) / 1000);
+
+  if (seconds < 45) return "just now";
+  if (seconds < 3600) return `${Math.max(1, Math.floor(seconds / 60))}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d`;
+
+  return formatMonthDate(date);
 };
 
 export const formatCount = (value) => {
@@ -60,7 +80,9 @@ export const formatCount = (value) => {
 
   if (!Number.isFinite(count) || count < 0) return "0";
   if (count < 1000) return String(count);
-  if (count < 1000000) return `${(count / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+  if (count < 1000000) {
+    return `${(count / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+  }
 
   return `${(count / 1000000).toFixed(1).replace(/\.0$/, "")}m`;
 };

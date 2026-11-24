@@ -4,7 +4,7 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import Avatar from "../../shared/components/Avatar";
 import { getErrorMessage } from "../../shared/utils/error";
 import {
-  formatJournalDate,
+  formatLongDate,
   getUserAvatar,
 } from "../../shared/utils/format";
 import {
@@ -81,7 +81,7 @@ const Settings = () => {
   const [deleting, setDeleting] = useState(false);
 
   const username = user?.username ?? "";
-  const joined = formatJournalDate(user?.createdAt) || "Not recorded";
+  const joined = formatLongDate(user?.createdAt) || "Not recorded";
   const bio = user?.bio?.trim() || "No bio yet.";
   const isDemoAccount =
     String(user?.email ?? "").trim().toLowerCase() === DEMO_EMAIL;
@@ -173,7 +173,7 @@ const Settings = () => {
 
       downloadBlob(
         blob,
-        `journal-export-${username || "account"}.json`
+        `mosaic-export-${username || "account"}.json`
       );
       setExported(true);
     } catch (error) {
@@ -223,7 +223,7 @@ const Settings = () => {
         replace: true,
         state: {
           notice:
-            "Your account and journal records were deleted. ImageKit image files may remain. You have been signed out.",
+            "Your account and Mosaic records were deleted. ImageKit image files may remain. You have been signed out.",
         },
       });
     } catch (error) {
@@ -238,10 +238,10 @@ const Settings = () => {
   };
 
   return (
-    <main className="settings-page">
+    <main className="settings-page" id="main-content">
       <div className="settings-shell">
         <Link to="/" className="settings-back">
-          <span aria-hidden="true">←</span> Back to contact sheet
+          Back to the feed
         </Link>
 
         <header className="settings-header">
@@ -253,7 +253,7 @@ const Settings = () => {
             />
 
             <div className="settings-copy">
-              <p className="eyebrow">Journal / Account</p>
+              <p className="eyebrow">Mosaic / Account</p>
               <h1>
                 Your <em>settings.</em>
               </h1>
@@ -319,15 +319,14 @@ const Settings = () => {
             </dl>
 
             <p className="settings-note">
-              Your bio and profile image are edited from your public contact
-              sheet.
+              Your bio and profile image are edited from your public portfolio.
             </p>
 
             <Link
               to={`/u/${encodeURIComponent(username)}`}
               className="text-link settings-inline-link"
             >
-              Open your contact sheet
+              Open your portfolio
             </Link>
           </section>
 
@@ -353,7 +352,7 @@ const Settings = () => {
                 <p>
                   The shared demo account uses a generated password to stay
                   available to every visitor, so its password cannot be changed
-                  here. Sign in with the demo credentials to explore Journal.
+                  here. Sign in with the demo credentials to explore Mosaic.
                 </p>
               </div>
             ) : (
@@ -510,7 +509,7 @@ const Settings = () => {
             </div>
 
             <p className="settings-note">
-              Download a JSON file with your account, posts, comments, likes
+              Download a JSON file with your account, frames, replies, likes
               and follow relationships. Password hashes are never included.
             </p>
 
@@ -588,8 +587,8 @@ const Settings = () => {
                   id="settings-danger-warning"
                 >
                   <p>
-                    Deleting your account removes your profile, posts,
-                    comments, likes and follow relationships from Journal. Your
+                    Deleting your account removes your profile, frames,
+                    replies, likes and follow relationships from Mosaic. Your
                     sessions end immediately. This cannot be undone.
                   </p>
                   <p>
@@ -707,10 +706,10 @@ const Settings = () => {
         </div>
 
         <footer className="settings-footer">
-          <p>Journal, a photo journal</p>
-          <nav aria-label="Legal">
+          <p>Mosaic. Image-first conversations.</p>
+          <nav aria-label="Mosaic">
+            <Link to="/explore">Explore</Link>
             <Link to="/privacy">Privacy</Link>
-            <span aria-hidden="true">·</span>
             <Link to="/terms">Terms</Link>
           </nav>
         </footer>

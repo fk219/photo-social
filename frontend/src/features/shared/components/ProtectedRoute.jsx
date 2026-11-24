@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children }) => {
     return (
       <main className="route-loading" role="status">
         <span className="spinner" aria-hidden="true" />
-        <span>Opening your journal…</span>
+        <span>Opening Mosaic...</span>
       </main>
     );
   }

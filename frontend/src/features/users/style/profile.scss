@@ -1,54 +1,36 @@
 @use "../../shared/tokens" as *;
 
 .profile-page {
-  min-height: 100%;
-  padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 4vw, 2rem)
-    clamp(3.5rem, 8vw, 6rem);
+  padding: clamp(1.9rem, 4vw, 3.25rem) clamp(1rem, 3.5vw, 2.5rem)
+    clamp(4rem, 8vw, 7rem);
 }
 
 .profile-shell {
   width: 100%;
-  max-width: 1040px;
+  max-width: 1060px;
   min-width: 0;
   margin: 0 auto;
 }
 
-.profile-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-height: 36px;
-  margin-bottom: 1.35rem;
-  color: $graphite-deep;
-  font-family: $font-mono;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  transition: color 0.2s $ease-out;
-
-  &:hover {
-    color: $shutter-ink;
-  }
-}
-
 .profile-header {
+  @include paper-surface;
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1.5rem clamp(1.5rem, 4vw, 2.5rem);
-  padding: clamp(1.25rem, 4vw, 2rem);
-  background-color: $card;
-  border: 1px solid $hairline;
+  gap: 1.4rem clamp(1.5rem, 4vw, 2.5rem);
+  overflow: hidden;
+  padding: clamp(1.2rem, 3.5vw, 1.9rem);
+  border-radius: $radius-card;
+  box-shadow: 0 34px 80px -56px rgba(0, 0, 0, 0.95);
 
   &::before {
     content: "";
     position: absolute;
-    top: -1px;
-    left: -1px;
-    width: 64px;
-    height: 2px;
-    background-color: $shutter;
+    top: 0;
+    left: 0;
+    width: 68px;
+    height: 3px;
+    background-color: $vermilion;
   }
 }
 
@@ -56,35 +38,39 @@
   display: flex;
   align-items: flex-start;
   gap: clamp(1rem, 3vw, 1.5rem);
-  grid-column: 1 / -1;
+  grid-column: 1;
   min-width: 0;
 }
 
 .profile-copy {
   min-width: 0;
 
+  .eyebrow {
+    color: $cobalt-deep;
+  }
+
   h1 {
     margin: 0.3rem 0 0.55rem;
+    color: $gallery-ink;
     font-family: $font-display;
-    font-size: clamp(2.5rem, 6vw, 3.6rem);
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
     font-weight: 400;
-    line-height: 0.94;
     letter-spacing: -0.03em;
+    line-height: 0.94;
     overflow-wrap: anywhere;
   }
 }
 
 .profile-bio {
   max-width: 54ch;
-  color: $graphite-deep;
+  color: $gallery-muted;
   font-size: 0.92rem;
-  line-height: 1.7;
+  line-height: 1.65;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 
-  &.profile-bio--empty {
+  &--empty {
     font-style: italic;
-    opacity: 0.82;
   }
 }
 
@@ -92,47 +78,52 @@
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 1.25rem clamp(1.5rem, 4vw, 2.75rem);
+  gap: 1rem clamp(1.3rem, 3vw, 2.2rem);
+  align-self: start;
+  padding-left: clamp(1rem, 3vw, 1.6rem);
+  border-left: 1px solid $gallery-line;
 
   div {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.18rem;
   }
 
   dt {
-    @include eyebrow;
-    font-size: 0.52rem;
-    letter-spacing: 0.14em;
+    color: $gallery-muted;
+    font-size: 0.57rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
 
   dd {
-    color: $ink;
-    font-family: $font-mono;
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    color: $gallery-ink;
+    font-family: $font-display;
+    font-size: 1.85rem;
+    letter-spacing: -0.015em;
+    line-height: 1;
   }
 }
 
 .profile-actions {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.55rem;
+  grid-column: 1 / -1;
+  padding-top: 1rem;
+  border-top: 1px solid $gallery-line;
 }
 
 .profile-action {
-  min-height: 42px;
-  padding: 0.65rem 1rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.12em;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  font-size: 0.82rem;
 }
 
 .profile-action-error {
   grid-column: 1 / -1;
-  margin: 0;
 }
 
 .profile-bio-form {
@@ -140,66 +131,81 @@
   flex-direction: column;
   gap: 0.8rem;
   grid-column: 1 / -1;
-  max-width: 640px;
-  padding-top: 1.25rem;
-  border-top: 1px solid $hairline;
+  max-width: 680px;
+  padding-top: 1.1rem;
+  border-top: 1px solid $gallery-line;
 }
 
 .profile-bio-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-
-  .button {
-    min-height: 42px;
-    padding: 0.65rem 1rem;
-    font-size: 0.6rem;
-  }
+  gap: 0.55rem;
 }
 
-.profile-sheet {
-  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+.portfolio {
+  margin-top: clamp(1.8rem, 4vw, 2.6rem);
 }
 
-.profile-sheet-header {
+.portfolio-head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
   padding-bottom: 0.8rem;
-  border-bottom: 1px solid $hairline;
+  border-bottom: 1px solid $ink-line;
+
+  .eyebrow {
+    color: $cream-faint;
+  }
 
   h2 {
+    margin-top: 0.35rem;
+    color: $cream;
     font-family: $font-display;
-    font-size: clamp(1.9rem, 4vw, 2.35rem);
+    font-size: clamp(2rem, 4vw, 2.5rem);
     font-weight: 400;
-    line-height: 1;
     letter-spacing: -0.02em;
+    line-height: 1;
   }
 }
 
-.profile-sheet-count {
-  @include eyebrow;
-  font-size: 0.54rem;
+.portfolio-count {
+  color: $cream-faint;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 .profile-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.75rem, 2vw, 1.1rem);
+  gap: clamp(0.75rem, 2vw, 1.15rem);
+  margin-top: 1.15rem;
 }
 
 .profile-frame {
+  @include paper-surface;
   min-width: 0;
   margin: 0;
-  background-color: $card;
-  border: 1px solid $hairline;
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: 0 24px 60px -50px rgba(0, 0, 0, 0.9);
 }
 
 .profile-frame-link {
   display: block;
+  height: 100%;
+  border-radius: 4px;
+
+  &:hover .profile-frame-media img {
+    transform: scale(1.035);
+  }
+
+  &:hover .profile-frame-take {
+    color: $cobalt-deep;
+  }
 }
 
 .profile-frame-media {
@@ -207,8 +213,7 @@
   display: block;
   aspect-ratio: 1;
   overflow: hidden;
-  background-color: $paper-deep;
-  border-bottom: 1px solid $hairline;
+  background-color: $gallery-deep;
 
   img {
     width: 100%;
@@ -218,80 +223,112 @@
   }
 }
 
-.profile-frame-caption {
+.profile-frame-thread {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: -webkit-box;
-  overflow: hidden;
-  padding: 0.55rem 0.65rem;
-  background-color: rgba(18, 19, 15, 0.84);
-  color: $paper;
-  font-size: 0.68rem;
-  line-height: 1.45;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.25s $ease-out, transform 0.25s $ease-out;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.profile-frame:hover,
-.profile-frame:focus-within {
-  .profile-frame-media img {
-    transform: scale(1.035);
-  }
-
-  .profile-frame-caption {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  right: 0.45rem;
+  bottom: 0.45rem;
+  padding: 0.28rem 0.45rem;
+  border-radius: 999px;
+  background-color: rgba(10, 11, 14, 0.88);
+  color: $cream;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .profile-frame-meta {
   display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.7rem 0.7rem;
+  border-top: 1px solid $gallery-line;
+}
+
+.profile-frame-take {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 2.6em;
+  color: $gallery-ink;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  transition: color 0.2s $ease-out;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.profile-frame-sub {
+  display: flex;
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.2rem 0.5rem;
-  padding: 0.5rem 0.6rem;
-  color: $graphite-deep;
-  font-family: $font-mono;
-  font-size: 0.52rem;
-  letter-spacing: 0.08em;
+  gap: 0.15rem 0.5rem;
+  color: $gallery-muted;
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .profile-empty,
 .profile-message {
+  @include paper-surface;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: clamp(2.25rem, 6vw, 3.5rem) clamp(1.25rem, 5vw, 2.75rem);
-  background-color: $card;
-  border: 1px solid $hairline;
+  padding: clamp(2rem, 5vw, 3.2rem) clamp(1.2rem, 5vw, 2.5rem);
+  border-radius: $radius-card;
+  box-shadow: 0 34px 80px -56px rgba(0, 0, 0, 0.95);
   text-align: center;
+
+  .eyebrow {
+    color: $cobalt-deep;
+  }
 
   h1,
   h3 {
-    margin: 0.6rem 0 0.7rem;
+    max-width: 20ch;
+    margin: 0.55rem 0 0.65rem;
+    color: $gallery-ink;
     font-family: $font-display;
-    font-size: clamp(2.1rem, 6vw, 2.9rem);
+    font-size: clamp(2.1rem, 5vw, 2.9rem);
     font-weight: 400;
-    line-height: 0.98;
     letter-spacing: -0.02em;
+    line-height: 0.98;
   }
 
   > p:not(.eyebrow) {
-    max-width: 42ch;
-    color: $graphite-deep;
+    max-width: 44ch;
+    color: $gallery-muted;
     font-size: 0.88rem;
-    line-height: 1.7;
+    line-height: 1.65;
   }
 
   .button {
-    margin-top: 1.3rem;
+    margin-top: 1.2rem;
+  }
+}
+
+.profile-empty {
+  margin-top: 1.15rem;
+}
+
+.profile-message {
+  margin-top: 1rem;
+}
+
+.profile-message-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-top: 1.2rem;
+
+  .button {
+    margin-top: 0;
   }
 }
 
@@ -299,22 +336,23 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.6rem;
   margin-top: 2rem;
 }
 
 .profile-more-error {
-  color: $shutter-ink;
-  font-family: $font-mono;
-  font-size: 0.58rem;
-  line-height: 1.55;
+  color: $vermilion-light;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .profile-end {
-  color: $graphite-deep;
-  font-family: $font-mono;
-  font-size: 0.54rem;
-  letter-spacing: 0.13em;
+  color: $cream-faint;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -323,47 +361,50 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.6rem 1.5rem;
+  gap: 0.4rem 1.5rem;
   margin-top: clamp(2rem, 5vw, 3rem);
-  padding-top: 1.1rem;
-  border-top: 1px solid $hairline;
-  color: $graphite-deep;
-  font-family: $font-mono;
-  font-size: 0.54rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  padding-top: 1rem;
+  border-top: 1px solid $ink-line;
+  color: $cream-faint;
+  font-size: 0.64rem;
+  letter-spacing: 0.03em;
 
   nav {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    flex-wrap: wrap;
+    gap: 0.1rem 1.1rem;
   }
 
   a {
-    border-bottom: 1px solid transparent;
-    transition: color 0.2s $ease-out, border-color 0.2s $ease-out;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 
     &:hover {
-      color: $shutter-ink;
-      border-color: currentColor;
+      color: $cream;
     }
   }
 }
 
+// Loading
 .profile-skeleton-header {
   display: flex;
   align-items: flex-start;
-  gap: 1.5rem;
-  padding: clamp(1.25rem, 4vw, 2rem);
-  background-color: $card;
-  border: 1px solid $hairline;
+  gap: 1.4rem;
+  padding: clamp(1.2rem, 3.5vw, 1.9rem);
+  background-color: rgba(246, 240, 228, 0.05);
+  border: 1px solid $ink-line;
+  border-radius: $radius-card;
 }
 
 .profile-skeleton-avatar {
   flex: none;
-  width: 92px;
-  height: 92px;
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
 }
 
@@ -372,12 +413,12 @@
   flex-direction: column;
   gap: 0.7rem;
   width: 100%;
-  padding-top: 1.25rem;
+  padding-top: 1rem;
 }
 
 .profile-skeleton-line {
   display: block;
-  width: 82%;
+  width: 76%;
   height: 11px;
 }
 
@@ -386,53 +427,60 @@
 }
 
 .profile-skeleton-line--medium {
-  width: 56%;
+  width: 54%;
 }
 
 .profile-skeleton-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.75rem, 2vw, 1.1rem);
-  margin-top: 2rem;
+  gap: clamp(0.75rem, 2vw, 1.15rem);
+  margin-top: 1.8rem;
 }
 
 .profile-skeleton-tile {
   display: block;
   aspect-ratio: 1;
-  border: 1px solid $hairline;
+  background-color: rgba(246, 240, 228, 0.05);
+  border: 1px solid $ink-line;
+  border-radius: 4px;
 }
 
 .profile-skeleton-avatar,
-.profile-skeleton-line,
-.profile-skeleton-tile {
-  background: linear-gradient(
-    90deg,
-    $paper-deep 25%,
-    #f7f8f3 37%,
-    $paper-deep 63%
-  );
-  background-size: 400% 100%;
-  animation: profile-shimmer 1.4s ease infinite;
+.profile-skeleton-line {
+  background: rgba(246, 240, 228, 0.09);
+  animation: profile-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes profile-shimmer {
-  0% {
-    background-position: 100% 50%;
-  }
+@keyframes profile-pulse {
+  0%,
   100% {
-    background-position: 0 50%;
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .profile-header {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .profile-actions {
-    justify-content: flex-start;
+  .profile-stats {
+    width: 100%;
+    padding-top: 1rem;
+    padding-left: 0;
+    border-top: 1px solid $gallery-line;
+    border-left: 0;
   }
 
+  .profile-grid,
+  .profile-skeleton-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
   .profile-grid,
   .profile-skeleton-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -441,13 +489,7 @@
 
 @media (max-width: 560px) {
   .profile-page {
-    padding-top: 1.5rem;
-  }
-
-  .avatar.avatar--profile,
-  .profile-skeleton-avatar {
-    width: 68px;
-    height: 68px;
+    padding: 1.4rem 1rem 3rem;
   }
 
   .profile-identity {
@@ -455,16 +497,12 @@
   }
 
   .profile-copy h1 {
-    font-size: clamp(2.2rem, 11vw, 2.8rem);
-  }
-
-  .profile-stats {
-    gap: 1rem 1.5rem;
+    font-size: clamp(2.15rem, 10vw, 2.7rem);
   }
 
   .profile-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    flex-direction: column;
+    align-items: stretch;
     width: 100%;
 
     .profile-action {
@@ -472,11 +510,37 @@
     }
   }
 
-  .profile-skeleton-header {
-    gap: 1rem;
+  .profile-stats dd {
+    font-size: 1.6rem;
   }
 
-  .profile-skeleton-lines {
-    padding-top: 0.4rem;
+  .portfolio-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .profile-frame-meta {
+    padding: 0.55rem 0.6rem 0.6rem;
+  }
+
+  .profile-frame-take {
+    font-size: 0.78rem;
+  }
+
+  .profile-legal {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-frame-media img {
+    transition: none;
+  }
+
+  .profile-skeleton-avatar,
+  .profile-skeleton-line {
+    animation: none;
   }
 }

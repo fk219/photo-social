@@ -71,8 +71,8 @@ export const compressImage = async (file) => {
     throw new Error("This browser could not resize the photograph.");
   }
 
-  // JPEG has no alpha channel; fill with paper white instead of black.
-  context.fillStyle = "#ffffff";
+  // JPEG has no alpha channel; fill with gallery paper instead of black.
+  context.fillStyle = "#F6EFE3";
   context.fillRect(0, 0, width, height);
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";

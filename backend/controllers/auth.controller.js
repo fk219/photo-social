@@ -314,11 +314,11 @@ const exportAccountController = async (req, res) => {
 
     res.set({
         "Cache-Control": "no-store",
-        "Content-Disposition": `attachment; filename="journal-export-${safeUsername}.json"`,
+        "Content-Disposition": `attachment; filename="mosaic-export-${safeUsername}.json"`,
     });
 
     return res.status(200).json({
-        format: "journal-account-export",
+        format: "mosaic-account-export",
         version: 1,
         exportedAt: new Date().toISOString(),
         account: {

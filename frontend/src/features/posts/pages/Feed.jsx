@@ -1,139 +1,222 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import Post from "../components/Post";
+import FeedTabs from "../components/FeedTabs";
+import FeedRail from "../components/FeedRail";
 import { usePost } from "../hooks/usePost";
 import { useAuth } from "../../auth/hooks/useAuth";
 import "../style/feed.scss";
 
 const FeedSkeleton = () => (
   <div className="post-skeleton" aria-hidden="true">
-    <div className="skeleton-meta">
-      <span className="skeleton-line skeleton-line--short" />
-      <span className="skeleton-line skeleton-line--tiny" />
+    <div className="skeleton-head">
+      <span className="skeleton-avatar" />
+      <span className="skeleton-head-copy">
+        <span className="skeleton-line skeleton-line--short" />
+        <span className="skeleton-line skeleton-line--tiny" />
+      </span>
     </div>
     <div className="skeleton-photo" />
     <div className="skeleton-body">
-      <div className="skeleton-author">
-        <span className="skeleton-avatar" />
-        <span className="skeleton-line skeleton-line--medium" />
-      </div>
+      <span className="skeleton-line skeleton-line--tiny" />
       <span className="skeleton-line skeleton-line--wide" />
-      <span className="skeleton-line skeleton-line--wide" />
-      <span className="skeleton-line skeleton-line--short" />
+      <span className="skeleton-line skeleton-line--medium" />
+      <span className="skeleton-thread" />
     </div>
   </div>
 );
 
-const Feed = () => {
+const Feed = ({ scope = "explore" }) => {
   const { user, initializing } = useAuth();
+  const { getFeedState, handleGetFeed, handleLoadMore } = usePost();
+
+  const feedState = getFeedState(scope);
   const {
-    feed,
-    feedError,
-    handleGetFeed,
-    handleLoadMore,
+    items,
     loading,
+    error,
+    nextCursor,
     loadingMore,
     loadMoreError,
-    nextCursor,
-  } = usePost();
-  const username = user?.username;
+  } = feedState;
+
+  const followingScope = scope === "following";
+  const posts = items ?? [];
+  const loadedCount = posts.length;
+  const viewerName = user?.username ?? null;
+  const feedViewer = feedState.viewer;
+  const countLabel =
+    items !== null
+      ? `${loadedCount} ${loadedCount === 1 ? "frame" : "frames"} loaded`
+      : error
+        ? "Feed unavailable"
+        : "Loading frames";
 
   useEffect(() => {
-    if (initializing || !username) return;
-    handleGetFeed();
-  }, [handleGetFeed, initializing, username]);
+    if (initializing) return;
+    if (followingScope && !user) return;
+    if (loading) return;
 
-  const posts = feed ?? [];
-  const isFirstLoad = Boolean(username) && feed === null && !feedError;
-  const frameCount = String(posts.length).padStart(2, "0");
-  const frameLabel = nextCursor ? `${frameCount}+` : frameCount;
-  const countLabel =
-    !username || feed === null ? "Loading…" : `${frameLabel} frames`;
+    const needsViewerRefresh = feedViewer !== viewerName;
+
+    if (items !== null && !needsViewerRefresh) return;
+    if (error && !needsViewerRefresh) return;
+
+    handleGetFeed(scope);
+  }, [
+    error,
+    feedViewer,
+    followingScope,
+    handleGetFeed,
+    initializing,
+    items,
+    loading,
+    scope,
+    user,
+    viewerName,
+  ]);
+
+  if (followingScope && !user) {
+    if (initializing) {
+      return (
+        <main className="route-loading" id="main-content" role="status">
+          <span className="spinner" aria-hidden="true" />
+          <span>Opening Mosaic...</span>
+        </main>
+      );
+    }
+
+    return <Navigate to="/explore" replace />;
+  }
+
+  const isFirstLoad =
+    initializing || ((items === null || loading) && !error && posts.length === 0);
+  const showError = Boolean(error) && posts.length === 0;
+  const showEmpty = !showError && items !== null && posts.length === 0;
 
   return (
-    <main className="feed-page">
+    <main className="feed-page" id="main-content">
       <div className="feed-shell">
         <div className="feed-column">
-          <header className="journal-header">
-            <p className="eyebrow">Contact sheet · Ongoing</p>
-            <div className="journal-title-row">
-              <h1>
-                Recent <em>frames</em>
-              </h1>
-              <span className="journal-count">
-                {countLabel}
-              </span>
+          <header className="feed-header">
+            <div className="feed-header-top">
+              <p className="eyebrow">
+                {followingScope ? "Home / Following" : "Explore / Open gallery"}
+              </p>
+              <span className="feed-count">{countLabel}</span>
             </div>
-            <p className="journal-intro">
-              A running contact sheet of photographs, posted one frame at a
-              time. Every member&rsquo;s profile doubles as a public portfolio.
+
+            <h1>
+              {followingScope ? (
+                <>
+                  Your people, in <em>frames.</em>
+                </>
+              ) : (
+                <>
+                  Find the <em>thread.</em>
+                </>
+              )}
+            </h1>
+
+            <p className="feed-intro">
+              {followingScope
+                ? "Frames from the creators you follow, plus your own, with the conversations still open."
+                : "Frames from across Mosaic, newest first. Open a thread and join the conversation."}
             </p>
           </header>
 
-          {initializing || isFirstLoad ? (
+          <FeedTabs scope={scope} signedIn={Boolean(user)} />
+
+          {!user && !initializing && (
+            <div className="guest-note">
+              <p>You are reading Mosaic as a guest.</p>
+              <div className="guest-note-links">
+                <Link to="/login">Sign in</Link>
+                <Link to="/register">Create an account</Link>
+              </div>
+            </div>
+          )}
+
+          {error && posts.length > 0 && (
+            <div className="feed-inline-error" role="alert">
+              <p>{error}</p>
+              <button
+                type="button"
+                className="quiet-button"
+                onClick={() => handleGetFeed(scope)}
+                disabled={loading}
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {isFirstLoad ? (
             <div className="feed-loading" role="status">
-              <span className="sr-only">Loading the contact sheet…</span>
+              <span className="sr-only">Loading frames...</span>
               <div className="skeleton-stack">
-                <FeedSkeleton />
                 <FeedSkeleton />
                 <FeedSkeleton />
               </div>
             </div>
-          ) : !user ? (
-            <section className="feed-message" aria-labelledby="signed-out-title">
-              <p className="eyebrow">Members only</p>
-              <h2 id="signed-out-title">Open the journal.</h2>
-              <p>
-                Frames, notes and likes live behind a quiet sign-in. Public
-                portfolios stay open to everyone.
-              </p>
-              <div className="feed-message-actions">
-                <Link to="/login" className="button primary-button">
-                  Sign in
-                </Link>
-                <Link to="/register" className="button ghost-button">
-                  Create an account
-                </Link>
-              </div>
-            </section>
-          ) : feedError && posts.length === 0 ? (
+          ) : showError ? (
             <section className="feed-message feed-message--error" role="alert">
-              <p className="eyebrow">Roll unavailable</p>
-              <h2>The contact sheet didn&rsquo;t load.</h2>
-              <p>{feedError}</p>
-              <div className="feed-message-actions">
-                <button
-                  type="button"
-                  className="button ghost-button"
-                  onClick={handleGetFeed}
-                  disabled={loading}
-                >
-                  {loading ? "Trying again…" : "Try again"}
-                </button>
-              </div>
+              <p className="eyebrow">Feed unavailable</p>
+              <h2>The gallery did not load.</h2>
+              <p>{error}</p>
+              <button
+                type="button"
+                className="button primary-button"
+                onClick={() => handleGetFeed(scope)}
+                disabled={loading}
+              >
+                {loading ? "Trying again..." : "Try again"}
+              </button>
             </section>
-          ) : posts.length === 0 ? (
-            <section className="feed-message" aria-labelledby="empty-title">
-              <p className="eyebrow">Roll empty</p>
-              <h2 id="empty-title">No frames yet.</h2>
-              <p>
-                Every journal starts with a first photograph. Add one and start
-                the contact sheet.
+          ) : showEmpty ? (
+            <section className="feed-message" aria-labelledby="feed-empty-title">
+              <p className="eyebrow">
+                {followingScope ? "Following" : "Open gallery"}
               </p>
-              <Link to="/create-post" className="button primary-button">
-                Add the first frame
-              </Link>
+              <h2 id="feed-empty-title">
+                {followingScope
+                  ? "Your following feed is still blank."
+                  : "No frames on the wall yet."}
+              </h2>
+              <p>
+                {followingScope
+                  ? "Follow a few visual creators and their frames will appear here with every new reply."
+                  : "Mosaic is waiting for its first frame. Post a photograph and the take behind it."}
+              </p>
+              <div className="feed-message-actions">
+                {followingScope ? (
+                  <Link to="/explore" className="button primary-button">
+                    Find creators in Explore
+                  </Link>
+                ) : user ? (
+                  <Link to="/create-post" className="button primary-button">
+                    Post the first frame
+                  </Link>
+                ) : (
+                  <Link to="/register" className="button primary-button">
+                    Create an account
+                  </Link>
+                )}
+                {followingScope && (
+                  <Link
+                    to="/create-post"
+                    className="button ghost-button"
+                  >
+                    Post a frame
+                  </Link>
+                )}
+              </div>
             </section>
           ) : (
             <>
               <div className="posts">
                 {posts.map((item, index) => (
-                  <Post
-                    key={item._id ?? index}
-                    user={item.user}
-                    post={item}
-                    index={index}
-                  />
+                  <Post key={item._id ?? index} post={item} index={index} />
                 ))}
               </div>
 
@@ -150,71 +233,31 @@ const Feed = () => {
                     className={`button ghost-button${
                       loadingMore ? " is-loading" : ""
                     }`}
-                    onClick={handleLoadMore}
+                    onClick={() => handleLoadMore(scope)}
                     disabled={loadingMore}
                     aria-busy={loadingMore}
                   >
                     {loadingMore ? (
                       <>
                         <span className="spinner" aria-hidden="true" />
-                        Loading frames…
+                        Loading frames...
                       </>
                     ) : (
                       "Load more frames"
                     )}
                   </button>
                 ) : (
-                  <p className="feed-end">End of the roll · {frameCount} frames</p>
+                  <p className="feed-end">
+                    {loadedCount} {loadedCount === 1 ? "frame" : "frames"}.
+                    End of this view.
+                  </p>
                 )}
               </div>
             </>
           )}
         </div>
 
-        <aside className="journal-rail" aria-label="About this journal">
-          <div className="rail-card">
-            <p className="eyebrow">About this journal</p>
-            <h2>Notes from the field.</h2>
-            <p>
-              Journal is a contact sheet for slow looking: a frame, a caption, a
-              date. Just photographs and the notes that come with them.
-            </p>
-
-            <div className="rail-rule" aria-hidden="true" />
-
-            <dl className="rail-meta">
-              <div>
-                <dt>Format</dt>
-                <dd>Digital contact sheet</dd>
-              </div>
-              <div>
-                <dt>Frames</dt>
-                <dd>{!username || feed === null ? "Loading…" : frameLabel}</dd>
-              </div>
-            </dl>
-
-            <Link to="/create-post" className="rail-link">
-              <span>Add a frame</span>
-            </Link>
-
-            {user && (
-              <Link
-                to={`/u/${encodeURIComponent(user.username)}`}
-                className="rail-link rail-link--profile"
-              >
-                <span>View my profile</span>
-              </Link>
-            )}
-          </div>
-
-          <nav className="rail-legal" aria-label="Legal">
-            <Link to="/privacy">Privacy</Link>
-            <span aria-hidden="true">·</span>
-            <Link to="/terms">Terms</Link>
-          </nav>
-
-          <p className="rail-colophon">Journal, a photo journal</p>
-        </aside>
+        <FeedRail posts={posts} loading={loading || initializing} />
       </div>
     </main>
   );

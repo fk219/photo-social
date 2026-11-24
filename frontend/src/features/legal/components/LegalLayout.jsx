@@ -8,10 +8,10 @@ const LegalLayout = ({ eyebrow, title, accent, intro, children }) => {
   }, []);
 
   return (
-    <main className="legal-page">
+    <main className="legal-page" id="main-content">
       <div className="legal-shell">
         <Link to="/" className="legal-back">
-          <span aria-hidden="true">←</span> Back to the journal
+          Back to Mosaic
         </Link>
 
         <article className="legal-card">
@@ -29,10 +29,10 @@ const LegalLayout = ({ eyebrow, title, accent, intro, children }) => {
           <div className="legal-body">{children}</div>
 
           <footer className="legal-footer">
-            <span>Journal, a photo journal</span>
-            <nav aria-label="Legal">
+            <span>Mosaic. Image-first conversations.</span>
+            <nav aria-label="Mosaic">
+              <Link to="/explore">Explore</Link>
               <Link to="/privacy">Privacy</Link>
-              <span aria-hidden="true">·</span>
               <Link to="/terms">Terms</Link>
             </nav>
           </footer>

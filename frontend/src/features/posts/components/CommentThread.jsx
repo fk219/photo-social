@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import Avatar from "../../shared/components/Avatar";
 import { getErrorMessage } from "../../shared/utils/error";
-import { formatNoteDate, getUserAvatar } from "../../shared/utils/format";
+import {
+  formatFullDate,
+  formatRelativeTime,
+  getUserAvatar,
+} from "../../shared/utils/format";
 import {
   addComment,
   deleteComment,
@@ -12,20 +16,36 @@ import {
 import "../style/comments.scss";
 
 const COMMENT_LIMIT = 500;
+const PAGE_SIZE = 20;
 
-const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
+const CommentThread = ({
+  postId,
+  commentsCount = 0,
+  onCountChange,
+  onCommentsChange,
+  focusRequest = 0,
+}) => {
   const { user } = useAuth();
+  const location = useLocation();
+
   const [comments, setComments] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [composerError, setComposerError] = useState("");
+
   const [confirmId, setConfirmId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState("");
+
+  const composerRef = useRef(null);
+  const textareaId = `reply-${postId}`;
+  const errorId = `reply-error-${postId}`;
 
   useEffect(() => {
     let active = true;
@@ -33,20 +53,26 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
     setLoading(true);
     setLoadError("");
 
-    getComments(postId)
+    getComments(postId, { limit: PAGE_SIZE })
       .then((data) => {
         if (!active) return;
-        setComments(Array.isArray(data?.comments) ? data.comments : []);
+
+        const rows = Array.isArray(data?.comments)
+          ? [...data.comments].reverse()
+          : [];
+
+        setComments(rows);
         setNextCursor(data?.nextCursor ?? null);
+        onCommentsChange?.(rows);
 
         if (typeof data?.commentsCount === "number") {
-          onCountChange(data.commentsCount);
+          onCountChange?.(data.commentsCount);
         }
       })
       .catch((err) => {
         if (!active) return;
         setLoadError(
-          getErrorMessage(err, "The notes on this frame could not be loaded.")
+          getErrorMessage(err, "The replies on this frame could not be loaded.")
         );
       })
       .finally(() => {
@@ -56,7 +82,17 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
     return () => {
       active = false;
     };
-  }, [onCountChange, postId]);
+  }, [postId, onCommentsChange, onCountChange, reloadKey]);
+
+  useEffect(() => {
+    if (!focusRequest || loading) return undefined;
+
+    const timer = window.setTimeout(() => {
+      composerRef.current?.focus();
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [focusRequest, loading]);
 
   const loadEarlier = async () => {
     if (!nextCursor || loadingMore) return;
@@ -65,23 +101,29 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
     setLoadError("");
 
     try {
-      const data = await getComments(postId, { cursor: nextCursor });
-      const incoming = Array.isArray(data?.comments) ? data.comments : [];
-      setComments((current) => {
-        const seen = new Set(current.map((comment) => comment._id));
-        return [
-          ...current,
-          ...incoming.filter((comment) => !seen.has(comment._id)),
-        ];
+      const data = await getComments(postId, {
+        cursor: nextCursor,
+        limit: PAGE_SIZE,
       });
+      const incoming = Array.isArray(data?.comments)
+        ? [...data.comments].reverse()
+        : [];
+      const seen = new Set(comments.map((comment) => comment._id));
+      const merged = [
+        ...incoming.filter((comment) => !seen.has(comment._id)),
+        ...comments,
+      ];
+
+      setComments(merged);
       setNextCursor(data?.nextCursor ?? null);
+      onCommentsChange?.(merged);
 
       if (typeof data?.commentsCount === "number") {
-        onCountChange(data.commentsCount);
+        onCountChange?.(data.commentsCount);
       }
     } catch (err) {
       setLoadError(
-        getErrorMessage(err, "Earlier notes could not be loaded.")
+        getErrorMessage(err, "Earlier replies could not be loaded.")
       );
     } finally {
       setLoadingMore(false);
@@ -96,18 +138,17 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
     const text = draft.trim();
 
     if (!text) {
-      setComposerError("Write a note before posting.");
+      setComposerError("Write a reply before posting.");
       return;
     }
 
     if (text.length > COMMENT_LIMIT) {
-      setComposerError(
-        `Notes are limited to ${COMMENT_LIMIT} characters.`
-      );
+      setComposerError(`Replies are limited to ${COMMENT_LIMIT} characters.`);
       return;
     }
 
-    const previousCount = Number(commentsCount) || 0;
+    const previous = comments;
+    const previousCount = Number(commentsCount) || comments.length;
     const temporaryId = `temp-${Date.now()}`;
     const optimistic = {
       _id: temporaryId,
@@ -117,37 +158,36 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
       createdAt: new Date().toISOString(),
       pending: true,
     };
+    const next = [...comments, optimistic];
 
     setComposerError("");
     setDraft("");
     setSubmitting(true);
-    setComments((current) => [optimistic, ...current]);
-    setLoadError("");
-    onCountChange(previousCount + 1);
+    setComments(next);
+    onCommentsChange?.(next);
+    onCountChange?.(previousCount + 1);
 
     try {
       const data = await addComment(postId, text);
       const saved = data?.comment;
-
-      setComments((current) =>
-        current.map((comment) =>
-          comment._id === temporaryId
-            ? { ...optimistic, ...saved, pending: false }
-            : comment
-        )
+      const savedComment = { ...optimistic, ...saved, pending: false };
+      const replaced = next.map((comment) =>
+        comment._id === temporaryId ? savedComment : comment
       );
+
+      setComments(replaced);
+      onCommentsChange?.(replaced);
 
       if (typeof data?.commentsCount === "number") {
-        onCountChange(data.commentsCount);
+        onCountChange?.(data.commentsCount);
       }
     } catch (err) {
-      setComments((current) =>
-        current.filter((comment) => comment._id !== temporaryId)
-      );
+      setComments(previous);
+      onCommentsChange?.(previous);
+      onCountChange?.(previousCount);
       setDraft(text);
-      onCountChange(previousCount);
       setComposerError(
-        getErrorMessage(err, "Your note could not be saved. Try again.")
+        getErrorMessage(err, "Your reply could not be saved. Try again.")
       );
     } finally {
       setSubmitting(false);
@@ -155,24 +195,31 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
   };
 
   const handleDelete = async (commentId) => {
+    if (deletingId) return;
+
+    const previous = comments;
+    const previousCount = Number(commentsCount) || comments.length;
+    const next = comments.filter((comment) => comment._id !== commentId);
+
     setDeletingId(commentId);
     setDeleteError("");
+    setConfirmId(null);
+    setComments(next);
+    onCommentsChange?.(next);
+    onCountChange?.(Math.max(0, previousCount - 1));
 
     try {
       const data = await deleteComment(postId, commentId);
-      setComments((current) =>
-        current.filter((comment) => comment._id !== commentId)
-      );
-      setConfirmId(null);
 
       if (typeof data?.commentsCount === "number") {
-        onCountChange(data.commentsCount);
-      } else {
-        onCountChange(Math.max(0, (Number(commentsCount) || 0) - 1));
+        onCountChange?.(data.commentsCount);
       }
     } catch (err) {
+      setComments(previous);
+      onCommentsChange?.(previous);
+      onCountChange?.(previousCount);
       setDeleteError(
-        getErrorMessage(err, "That note could not be deleted.")
+        getErrorMessage(err, "That reply could not be deleted.")
       );
     } finally {
       setDeletingId(null);
@@ -180,141 +227,114 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
   };
 
   return (
-    <section className="post-comments" aria-label="Comments">
-      {user ? (
-        <form className="comment-composer" onSubmit={handleSubmit} noValidate>
-          <label htmlFor={`comment-${postId}`} className="sr-only">
-            Add a note to this frame
-          </label>
-          <textarea
-            id={`comment-${postId}`}
-            value={draft}
-            onChange={(event) => {
-              setDraft(event.target.value);
-              setComposerError("");
-            }}
-            maxLength={COMMENT_LIMIT}
-            placeholder="Leave a note in the margin…"
-            rows={2}
-            aria-invalid={Boolean(composerError)}
-            aria-describedby={
-              composerError ? `comment-error-${postId}` : undefined
-            }
-            disabled={submitting || loading}
-          />
+    <section className="thread" aria-label="Replies">
+      {nextCursor && !loading && (
+        <button
+          type="button"
+          className="thread-more"
+          onClick={loadEarlier}
+          disabled={loadingMore}
+        >
+          {loadingMore ? "Loading earlier replies..." : "Load earlier replies"}
+        </button>
+      )}
 
-          <div className="comment-composer-row">
-            <span className="comment-count">
-              {draft.length} / {COMMENT_LIMIT}
-            </span>
-            <button
-              type="submit"
-              className="button primary-button comment-submit"
-              disabled={submitting || loading || !draft.trim()}
-              aria-busy={submitting}
-            >
-              {submitting ? (
-                <>
-                  <span className="spinner" aria-hidden="true" />
-                  Posting…
-                </>
-              ) : (
-                "Add note"
-              )}
-            </button>
-          </div>
-
-          {composerError && (
-            <p className="field-error" id={`comment-error-${postId}`} role="alert">
-              {composerError}
-            </p>
-          )}
-        </form>
-      ) : (
-        <p className="comment-signin">
-          <Link to="/login">Sign in</Link> to leave a note.
+      {loadError && comments.length > 0 && (
+        <p className="thread-error" role="alert">
+          {loadError}
         </p>
       )}
 
       {loading ? (
-        <div className="comment-loading" role="status">
-          <span className="sr-only">Loading comments…</span>
-          <span className="comment-skeleton" />
-          <span className="comment-skeleton" />
+        <div className="thread-loading" role="status">
+          <span className="sr-only">Loading replies...</span>
+          <span className="reply-skeleton" />
+          <span className="reply-skeleton" />
         </div>
       ) : loadError && comments.length === 0 ? (
-        <p className="comment-error" role="alert">
-          {loadError}
-        </p>
+        <div className="thread-error-state" role="alert">
+          <p>{loadError}</p>
+          <button
+            type="button"
+            className="button ghost-button button--small"
+            onClick={() => setReloadKey((key) => key + 1)}
+          >
+            Try again
+          </button>
+        </div>
       ) : comments.length === 0 ? (
-        <p className="comment-empty">
-          No notes yet. Be the first to leave one.
+        <p className="thread-empty">
+          No replies yet. Say what you see in this frame.
         </p>
       ) : (
-        <ul className="comment-list">
+        <ul className="reply-list">
           {comments.map((comment) => {
             const isOwn = comment.user === user?.username;
             const isPending = Boolean(comment.pending);
             const isConfirming = confirmId === comment._id;
-            const isDeleting = deletingId === comment._id;
+            const postedAt = formatRelativeTime(comment.createdAt);
 
             return (
               <li
                 key={comment._id}
-                className={`comment${isPending ? " is-pending" : ""}`}
+                className={`reply${isPending ? " is-pending" : ""}`}
               >
-                <Avatar
-                  src={comment.profile_image}
-                  name={comment.user}
-                  className="avatar--comment"
-                />
-                <div className="comment-body">
-                  <div className="comment-meta">
+                <span className="reply-node" aria-hidden="true">
+                  <Avatar
+                    src={comment.profile_image}
+                    name={comment.user}
+                    className="avatar--reply"
+                  />
+                </span>
+
+                <div className="reply-body">
+                  <div className="reply-meta">
                     <Link
                       to={`/u/${encodeURIComponent(comment.user)}`}
-                      className="comment-author"
+                      className="reply-author"
                     >
                       @{comment.user}
                     </Link>
                     {comment.createdAt && (
                       <time
-                        className="comment-time"
+                        className="reply-time"
                         dateTime={comment.createdAt}
+                        title={formatFullDate(comment.createdAt) || undefined}
                       >
-                        {formatNoteDate(comment.createdAt)}
+                        {postedAt}
                       </time>
                     )}
                   </div>
 
-                  <p className="comment-text">{comment.text}</p>
+                  <p className="reply-text">{comment.text}</p>
 
                   {isPending && (
-                    <span className="comment-pending">Posting…</span>
+                    <span className="reply-pending">Posting...</span>
                   )}
 
                   {isOwn && !isPending && (
-                    <div className="comment-controls">
+                    <div className="reply-controls">
                       {isConfirming ? (
                         <>
-                          <span className="comment-confirm">
-                            Delete this note?
+                          <span className="reply-confirm">
+                            Delete this reply?
                           </span>
                           <button
                             type="button"
-                            className="comment-action comment-action--danger"
+                            className="quiet-button quiet-button--danger"
                             onClick={() => handleDelete(comment._id)}
-                            disabled={isDeleting}
+                            disabled={Boolean(deletingId)}
                           >
-                            {isDeleting ? "Deleting…" : "Delete"}
+                            Delete
                           </button>
                           <button
                             type="button"
-                            className="comment-action"
+                            className="quiet-button"
                             onClick={() => {
                               setConfirmId(null);
                               setDeleteError("");
                             }}
-                            disabled={isDeleting}
+                            disabled={Boolean(deletingId)}
                           >
                             Cancel
                           </button>
@@ -322,12 +342,12 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
                       ) : (
                         <button
                           type="button"
-                          className="comment-action"
+                          className="quiet-button"
                           onClick={() => {
                             setConfirmId(comment._id);
                             setDeleteError("");
                           }}
-                          aria-label={`Delete your comment: ${comment.text.slice(
+                          aria-label={`Delete your reply: ${comment.text.slice(
                             0,
                             50
                           )}`}
@@ -345,26 +365,66 @@ const CommentThread = ({ postId, commentsCount = 0, onCountChange }) => {
       )}
 
       {deleteError && (
-        <p className="comment-error" role="alert">
+        <p className="thread-error" role="alert">
           {deleteError}
         </p>
       )}
 
-      {loadError && comments.length > 0 && (
-        <p className="comment-error" role="alert">
-          {loadError}
-        </p>
-      )}
+      {user ? (
+        <form className="reply-composer" onSubmit={handleSubmit} noValidate>
+          <label htmlFor={textareaId} className="sr-only">
+            Write a reply to this frame
+          </label>
+          <textarea
+            ref={composerRef}
+            id={textareaId}
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setComposerError("");
+            }}
+            maxLength={COMMENT_LIMIT}
+            placeholder="Write a reply about this frame"
+            rows={2}
+            aria-invalid={Boolean(composerError)}
+            aria-describedby={composerError ? errorId : undefined}
+            disabled={submitting || loading}
+          />
 
-      {nextCursor && !loading && (
-        <button
-          type="button"
-          className="comment-more"
-          onClick={loadEarlier}
-          disabled={loadingMore}
-        >
-          {loadingMore ? "Loading earlier notes…" : "Load earlier notes"}
-        </button>
+          <div className="reply-composer-row">
+            <span className="reply-count">
+              {draft.length} / {COMMENT_LIMIT}
+            </span>
+            <button
+              type="submit"
+              className="button primary-button button--small"
+              disabled={submitting || loading || !draft.trim()}
+              aria-busy={submitting}
+            >
+              {submitting ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  Posting...
+                </>
+              ) : (
+                "Post reply"
+              )}
+            </button>
+          </div>
+
+          {composerError && (
+            <p className="field-error" id={errorId} role="alert">
+              {composerError}
+            </p>
+          )}
+        </form>
+      ) : (
+        <p className="reply-signin">
+          <Link to="/login" state={{ from: location }}>
+            Sign in
+          </Link>{" "}
+          to add a reply to this thread.
+        </p>
       )}
     </section>
   );

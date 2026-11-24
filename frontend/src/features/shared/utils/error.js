@@ -1,6 +1,6 @@
 export const getErrorMessage = (error, fallback) => {
   if (error?.code === "ERR_NETWORK") {
-    return "The journal could not be reached. Check your connection and try again.";
+    return "Mosaic could not be reached. Check your connection and try again.";
   }
 
   const data = error?.response?.data;

@@ -12,8 +12,13 @@ import ProtectedRoute from "./features/shared/components/ProtectedRoute";
 
 const Layout = () => (
   <>
+    <a className="skip-link" href="#main-content">
+      Skip to content
+    </a>
     <Navbar />
-    <Outlet />
+    <div className="app-body">
+      <Outlet />
+    </div>
   </>
 );
 
@@ -21,7 +26,8 @@ export const routes = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      { path: "/", element: <Feed /> },
+      { path: "/", element: <Feed scope="following" /> },
+      { path: "/explore", element: <Feed scope="explore" /> },
       { path: "/u/:username", element: <Profile /> },
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> },

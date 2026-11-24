@@ -1,7 +1,11 @@
 import { postApi } from "../../shared/api/client";
 
-export const getFeed = async ({ cursor = null, limit = 10 } = {}) => {
-  const params = { limit };
+export const getFeed = async ({
+  cursor = null,
+  limit = 10,
+  scope = "all",
+} = {}) => {
+  const params = { limit, scope: scope === "following" ? "following" : "all" };
 
   if (cursor) params.cursor = cursor;
 

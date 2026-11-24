@@ -1,77 +1,128 @@
-import { useCallback, useEffect, useId, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { usePost } from "../hooks/usePost";
 import { useAuth } from "../../auth/hooks/useAuth";
 import Avatar from "../../shared/components/Avatar";
 import CommentThread from "./CommentThread";
+import { subscribeToThreads } from "../threadBus";
 import {
   formatCount,
-  formatFrameNumber,
-  formatJournalDate,
+  formatFullDate,
+  formatRelativeTime,
   getUserAvatar,
 } from "../../shared/utils/format";
 
-const CAPTION_LIMIT = 160;
+const TAKE_LIMIT = 200;
 
-const Post = ({ user: author, post, index = 0 }) => {
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+const Post = ({ post, index = 0 }) => {
   const { user: viewer } = useAuth();
-  const {
-    handleLike,
-    handleUnlike,
-    handleDeletePost,
-    patchPost,
-  } = usePost();
+  const { handleLike, handleUnlike, handleDeletePost, patchPost } = usePost();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [imageFailed, setImageFailed] = useState(false);
+  const postId = post?._id;
+  const author = post?.user;
+  const username = author?.username || "unknown";
+  const caption = typeof post?.caption === "string" ? post.caption.trim() : "";
+  const commentsCount = Number(post?.commentsCount) || 0;
+  const likesCount = Number(post?.likesCount) || 0;
+  const liked = Boolean(post?.isLiked);
+  const isOwner =
+    Boolean(viewer?.username) && viewer.username === author?.username;
+
   const [imageSrc, setImageSrc] = useState(
     post?.thumbnail_url || post?.image_url || ""
   );
-  const [expanded, setExpanded] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+  const [takeExpanded, setTakeExpanded] = useState(false);
+  const [threadOpen, setThreadOpen] = useState(false);
+  const [threadPreview, setThreadPreview] = useState(null);
+  const [focusRequest, setFocusRequest] = useState(0);
   const [liking, setLiking] = useState(false);
   const [likeError, setLikeError] = useState("");
   const [pulse, setPulse] = useState(false);
-  const [commentsOpen, setCommentsOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
   const captionId = useId();
-  const commentsId = useId();
-
-  const frameNumber = formatFrameNumber(index);
-  const postedAt = formatJournalDate(post?.createdAt);
-  const username = author?.username || "unknown";
-  const caption = typeof post?.caption === "string" ? post.caption.trim() : "";
-  const isLongCaption = caption.length > CAPTION_LIMIT;
-  const liked = Boolean(post?.isLiked);
-  const likesCount = Number(post?.likesCount) || 0;
-  const commentsCount = Number(post?.commentsCount) || 0;
-  const isOwner =
-    Boolean(viewer?.username) &&
-    Boolean(author?.username) &&
-    viewer.username === username;
+  const threadId = useId();
+  const repliesButtonRef = useRef(null);
 
   const originalImage = post?.image_url || "";
   const thumbnailImage = post?.thumbnail_url || originalImage;
+  const postedAt = formatRelativeTime(post?.createdAt);
+  const fullDate = formatFullDate(post?.createdAt);
+  const isLongTake = caption.length > TAKE_LIMIT;
+  const previewReplies =
+    threadPreview ?? (Array.isArray(post?.recentComments)
+      ? post.recentComments
+      : []);
 
   useEffect(() => {
     setImageSrc(thumbnailImage);
     setImageFailed(false);
   }, [thumbnailImage]);
 
-  const updateCommentsCount = useCallback(
+  const handleCountChange = useCallback(
     (count) => {
-      if (!post?._id) return;
-      patchPost(post._id, {
+      patchPost(postId, {
         commentsCount: Math.max(0, Number(count) || 0),
       });
     },
-    [patchPost, post?._id]
+    [patchPost, postId]
   );
 
-  const photoAlt = caption
-    ? `Photograph by @${username}: ${caption.slice(0, 120)}`
-    : `Photograph by @${username}`;
+  const handleCommentsChange = useCallback((rows) => {
+    setThreadPreview(Array.isArray(rows) ? rows.slice(0, 2) : []);
+  }, []);
+
+  useEffect(() => {
+    let timer;
+
+    const unsubscribe = subscribeToThreads((requestedId) => {
+      if (requestedId !== postId) return;
+
+      setFocusRequest(0);
+      setThreadOpen(true);
+      timer = window.setTimeout(() => {
+        document
+          .getElementById(`post-${postId}`)
+          ?.scrollIntoView({
+            behavior: prefersReducedMotion() ? "auto" : "smooth",
+            block: "center",
+          });
+      }, 90);
+    });
+
+    return () => {
+      unsubscribe();
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [postId]);
+
+  const openReply = () => {
+    setThreadOpen(true);
+    setFocusRequest((request) => request + 1);
+  };
+
+  const closeThread = () => {
+    setThreadOpen(false);
+    setFocusRequest(0);
+    window.requestAnimationFrame(() => repliesButtonRef.current?.focus());
+  };
+
+  const toggleThread = () => {
+    if (threadOpen) {
+      closeThread();
+    } else {
+      setThreadOpen(true);
+    }
+  };
 
   const handleImageError = () => {
     if (originalImage && imageSrc !== originalImage) {
@@ -83,63 +134,91 @@ const Post = ({ user: author, post, index = 0 }) => {
   };
 
   const toggleLike = async () => {
-    if (liking || !post?._id) return;
+    if (!postId || liking) return;
+
+    if (!viewer) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+
+    const nextLiked = !liked;
+    const previous = { isLiked: liked, likesCount };
+    const nextCount = Math.max(0, likesCount + (nextLiked ? 1 : -1));
 
     setLiking(true);
     setLikeError("");
     setPulse(false);
+    patchPost(postId, { isLiked: nextLiked, likesCount: nextCount });
 
     try {
-      if (liked) {
-        await handleUnlike(post._id);
-      } else {
-        await handleLike(post._id);
+      if (nextLiked) {
+        await handleLike(postId);
         setPulse(true);
+      } else {
+        await handleUnlike(postId);
       }
     } catch {
-      setLikeError("Like could not be saved.");
+      patchPost(postId, previous);
+      setLikeError("That like could not be saved. Try again.");
     } finally {
       setLiking(false);
     }
   };
 
   const removePost = async () => {
-    if (!post?._id || deleting) return;
+    if (!postId || deleting) return;
 
     setDeleting(true);
     setDeleteError("");
 
     try {
-      await handleDeletePost(post._id);
+      await handleDeletePost(postId);
     } catch {
       setDeleteError("This frame could not be deleted. Try again.");
       setDeleting(false);
     }
   };
 
-  const authorName = (
-    <span className="post-author-name">@{username}</span>
-  );
+  const photoAlt = caption
+    ? `Photograph by @${username}: ${caption.slice(0, 120)}`
+    : `Photograph by @${username}`;
 
   return (
     <article
+      id={`post-${postId}`}
       className="post"
-      style={{ "--frame-delay": `${Math.min(index, 5) * 70}ms` }}
+      aria-label={`Frame by @${username}`}
+      style={{ "--post-delay": `${Math.min(index, 4) * 60}ms` }}
     >
-      <div className="post-frame-row">
-        <span className="post-frame">Frame {frameNumber}</span>
-        <span className="frame-rule" aria-hidden="true" />
-        {isOwner && (
-          <span className="post-owner-tag">Your frame</span>
-        )}
-      </div>
+      <header className="post-head">
+        <Link
+          to={`/u/${encodeURIComponent(username)}`}
+          className="post-author"
+        >
+          <Avatar
+            src={getUserAvatar(author)}
+            name={username}
+            className="avatar--post"
+          />
+          <span className="post-author-copy">
+            <span className="post-author-name">@{username}</span>
+            {postedAt && (
+              <time className="post-time" dateTime={post.createdAt} title={fullDate || undefined}>
+                {postedAt}
+              </time>
+            )}
+          </span>
+        </Link>
+
+        {isOwner && <span className="post-owner-tag">Your frame</span>}
+      </header>
 
       <div className="post-media">
         {imageSrc && !imageFailed ? (
           <img
             src={imageSrc}
             alt={photoAlt}
-            loading="lazy"
+            loading={index < 2 ? "eager" : "lazy"}
             decoding="async"
             onError={handleImageError}
           />
@@ -147,163 +226,228 @@ const Post = ({ user: author, post, index = 0 }) => {
           <div
             className="photo-fallback"
             role="img"
-            aria-label={`Frame ${frameNumber} is unavailable`}
+            aria-label={`The photograph by @${username} is unavailable`}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="3" y="6" width="18" height="14" rx="1.5" />
               <circle cx="12" cy="13" r="3.2" />
               <path d="m8 6 1.4-2h5.2L16 6" />
             </svg>
-            <span>Image unavailable</span>
-            <span className="photo-fallback-frame">Frame {frameNumber}</span>
+            <span>Photograph unavailable</span>
           </div>
         )}
       </div>
 
       <div className="post-body">
-        <div className="post-author">
-          {author?.username ? (
-            <Link
-              to={`/u/${encodeURIComponent(username)}`}
-              className="post-author-link"
-            >
-              <Avatar
-                src={getUserAvatar(author)}
-                name={username}
-                className="avatar--post"
-              />
-              {authorName}
-            </Link>
+        <div className="post-take">
+          <p className="post-kicker">The take</p>
+          {caption ? (
+            <>
+              <h2
+                id={captionId}
+                className={`post-take-text${
+                  isLongTake && !takeExpanded ? " is-clamped" : ""
+                }`}
+              >
+                {caption}
+              </h2>
+              {isLongTake && (
+                <button
+                  type="button"
+                  className="take-toggle"
+                  onClick={() => setTakeExpanded((current) => !current)}
+                  aria-expanded={takeExpanded}
+                  aria-controls={captionId}
+                >
+                  {takeExpanded ? "Show less" : "Read the full take"}
+                </button>
+              )}
+            </>
           ) : (
-            <span className="post-author-link">
-              <Avatar
-                src={getUserAvatar(author)}
-                name={username}
-                className="avatar--post"
-              />
-              {authorName}
-            </span>
+            <p className="post-take-empty">
+              This frame was posted without a written take.
+            </p>
           )}
         </div>
 
-        {caption && (
-          <div className="post-copy">
-            <p
-              id={captionId}
-              className={`post-caption${
-                isLongCaption && !expanded ? " is-clamped" : ""
-              }`}
-            >
-              {caption}
-            </p>
-            {isLongCaption && (
-              <button
-                type="button"
-                className="caption-toggle"
-                onClick={() => setExpanded((current) => !current)}
-                aria-expanded={expanded}
-                aria-controls={captionId}
-              >
-                {expanded ? "Show less" : "Read more"}
-              </button>
-            )}
-          </div>
-        )}
-
-        <footer className="post-footer">
-          <div className="post-actions">
-            <button
-              type="button"
-              className="post-like"
-              aria-pressed={liked}
-              aria-label={
-                liked
+        <div className="post-actions">
+          <button
+            type="button"
+            className={`post-action post-like${liked ? " is-liked" : ""}`}
+            aria-pressed={viewer ? liked : undefined}
+            aria-label={
+              viewer
+                ? liked
                   ? `Unlike this frame, ${likesCount} likes`
                   : `Like this frame, ${likesCount} likes`
-              }
-              aria-busy={liking}
-              onClick={toggleLike}
+                : "Sign in to like this frame"
+            }
+            aria-busy={liking}
+            onClick={toggleLike}
+          >
+            <span
+              className={`like-glyph${pulse ? " is-pulsing" : ""}`}
+              onAnimationEnd={() => setPulse(false)}
+              aria-hidden="true"
             >
-              <span
-                className={`like-glyph${liked ? " is-liked" : ""}${
-                  pulse ? " is-pulsing" : ""
-                }`}
-                onAnimationEnd={() => setPulse(false)}
-                aria-hidden="true"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 8.81056L13.6352 6.48845C14.2721 5.58412 15.3179 5 16.5 5C18.433 5 20 6.567 20 8.5C20 11.3788 18.0407 14.1215 15.643 16.3358C14.4877 17.4027 13.3237 18.2603 12.4451 18.8521C12.2861 18.9592 12.1371 19.0571 11.9999 19.1456C11.8627 19.0571 11.7137 18.9592 11.5547 18.8521C10.6761 18.2604 9.51216 17.4028 8.35685 16.3358C5.95926 14.1216 4 11.3788 4 8.5C4 6.567 5.567 5 7.5 5C8.68209 5 9.72794 5.58412 10.3648 6.48845L12 8.81056ZM10.5557 3.92626C9.68172 3.3412 8.63071 3 7.5 3C4.46243 3 2 5.46243 2 8.5C2 16 11.9999 21.4852 11.9999 21.4852C11.9999 21.4852 22 16 22 8.5C22 5.46243 19.5376 3 16.5 3C15.3693 3 14.3183 3.3412 13.4443 3.92626C12.8805 4.3037 12.3903 4.78263 12 5.33692C11.6097 4.78263 11.1195 4.3037 10.5557 3.92626Z" />
-                </svg>
-              </span>
-              <span className="like-label">{liked ? "Liked" : "Like"}</span>
-              {likesCount > 0 && (
-                <span className="post-count">{formatCount(likesCount)}</span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              className="post-comments-toggle"
-              aria-expanded={commentsOpen}
-              aria-controls={commentsId}
-              aria-label={
-                commentsOpen
-                  ? `Hide comments, ${commentsCount} comments`
-                  : `Show comments, ${commentsCount} comments`
-              }
-              onClick={() => setCommentsOpen((current) => !current)}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M21 12a8 8 0 0 1-8 8H6l-3 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z" />
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 8.81 13.64 6.49A2.98 2.98 0 0 1 16.5 5a3.5 3.5 0 0 1 3.5 3.5c0 2.88-1.96 5.62-4.36 7.84A29.24 29.24 0 0 1 12 19.15a29.2 29.2 0 0 1-3.64-2.81C5.96 14.12 4 11.38 4 8.5A3.5 3.5 0 0 1 7.5 5c1.18 0 2.23.58 2.86 1.49L12 8.81Zm-1.44-4.88A4.98 4.98 0 0 0 7.5 3 5.5 5.5 0 0 0 2 8.5c0 7.5 10 12.99 10 12.99s10-5.49 10-12.99A5.5 5.5 0 0 0 16.5 3c-1.13 0-2.18.34-3.06.93-.56.38-1.05.86-1.44 1.41a5.5 5.5 0 0 0-1.44-1.41Z" />
               </svg>
-              <span className="like-label">
-                {commentsOpen ? "Hide notes" : "Notes"}
-              </span>
-              <span className="post-count">{formatCount(commentsCount)}</span>
-            </button>
+            </span>
+            <span>{liked ? "Liked" : "Like"}</span>
+            <span className="post-count">{formatCount(likesCount)}</span>
+          </button>
 
-            {likeError && (
-              <span className="post-like-error" role="alert">
-                {likeError}
-              </span>
-            )}
-          </div>
+          <button
+            type="button"
+            ref={repliesButtonRef}
+            className={`post-action post-replies${threadOpen ? " is-open" : ""}`}
+            aria-expanded={threadOpen}
+            aria-controls={threadId}
+            onClick={toggleThread}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 2.2V11.5A7.5 7.5 0 0 1 10.5 4h2A7.5 7.5 0 0 1 20 11.5Z" />
+            </svg>
+            <span>Replies</span>
+            <span className="post-count">{formatCount(commentsCount)}</span>
+          </button>
+        </div>
 
-          {postedAt && (
-            <time className="post-date" dateTime={post.createdAt}>
-              {postedAt}
-            </time>
-          )}
-        </footer>
-
-        {commentsOpen && (
-          <div id={commentsId} className="post-comments-shell">
-            <CommentThread
-              postId={post._id}
-              commentsCount={commentsCount}
-              onCountChange={updateCommentsCount}
-            />
-          </div>
+        {likeError && (
+          <p className="post-inline-error" role="alert">
+            {likeError}
+          </p>
         )}
 
+        <section
+          id={threadId}
+          className={`post-thread${threadOpen ? " is-open" : ""}`}
+          aria-label={`Replies to @${username}`}
+        >
+          <header className="post-thread-head">
+            <p className="post-thread-label">
+              Thread <span>{formatCount(commentsCount)}</span>
+            </p>
+            {threadOpen && (
+              <button
+                type="button"
+                className="quiet-button post-thread-close"
+                onClick={closeThread}
+              >
+                Close
+              </button>
+            )}
+          </header>
+
+          {threadOpen ? (
+            <CommentThread
+              postId={postId}
+              commentsCount={commentsCount}
+              onCountChange={handleCountChange}
+              onCommentsChange={handleCommentsChange}
+              focusRequest={focusRequest}
+            />
+          ) : (
+            <>
+              {previewReplies.length > 0 ? (
+                <ol className="thread-preview">
+                  {previewReplies.map((comment) => (
+                    <li className="reply reply--preview" key={comment._id}>
+                      <span className="reply-node" aria-hidden="true">
+                        <Avatar
+                          src={comment.profile_image}
+                          name={comment.user}
+                          className="avatar--reply"
+                        />
+                      </span>
+                      <div className="reply-body">
+                        <div className="reply-meta">
+                          <Link
+                            to={`/u/${encodeURIComponent(comment.user)}`}
+                            className="reply-author"
+                          >
+                            @{comment.user}
+                          </Link>
+                          {comment.createdAt && (
+                            <time
+                              className="reply-time"
+                              dateTime={comment.createdAt}
+                              title={
+                                formatFullDate(comment.createdAt) || undefined
+                              }
+                            >
+                              {formatRelativeTime(comment.createdAt)}
+                            </time>
+                          )}
+                        </div>
+                        <p className="reply-text">{comment.text}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="thread-empty thread-empty--compact">
+                  {commentsCount > 0
+                    ? "Open the thread to read the replies."
+                    : "No replies yet. Start the thread with what you see."}
+                </p>
+              )}
+
+              <div className="thread-preview-foot">
+                {commentsCount > 0 ? (
+                  <>
+                    <button
+                      type="button"
+                      className="thread-open-button"
+                      onClick={() => setThreadOpen(true)}
+                    >
+                      {commentsCount > previewReplies.length
+                        ? `View all ${formatCount(commentsCount)} ${
+                            commentsCount === 1 ? "reply" : "replies"
+                          }`
+                        : "Open the thread"}
+                    </button>
+                    <button
+                      type="button"
+                      className="thread-reply-button"
+                      onClick={openReply}
+                    >
+                      Reply
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="thread-reply-button"
+                    onClick={openReply}
+                  >
+                    Write the first reply
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+
         {isOwner && (
-          <div className="post-owner-row">
+          <div className="post-owner">
             {confirmingDelete ? (
               <>
                 <span className="post-owner-confirm">
-                  Delete this frame and its notes?
+                  Delete this frame and its replies?
                 </span>
                 <button
                   type="button"
-                  className="post-owner-action post-owner-action--danger"
+                  className="quiet-button quiet-button--danger"
                   onClick={removePost}
                   disabled={deleting}
                 >
-                  {deleting ? "Deleting…" : "Delete"}
+                  {deleting ? "Deleting..." : "Delete frame"}
                 </button>
                 <button
                   type="button"
-                  className="post-owner-action"
+                  className="quiet-button"
                   onClick={() => {
                     setConfirmingDelete(false);
                     setDeleteError("");
@@ -316,15 +460,15 @@ const Post = ({ user: author, post, index = 0 }) => {
             ) : (
               <button
                 type="button"
-                className="post-owner-action"
+                className="quiet-button"
                 onClick={() => setConfirmingDelete(true)}
               >
-                Remove frame
+                Delete frame
               </button>
             )}
 
             {deleteError && (
-              <span className="post-like-error" role="alert">
+              <span className="post-inline-error" role="alert">
                 {deleteError}
               </span>
             )}

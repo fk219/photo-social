@@ -2,10 +2,10 @@ import LegalLayout from "../components/LegalLayout";
 
 const Privacy = () => (
   <LegalLayout
-    eyebrow="Journal / Privacy"
+    eyebrow="Mosaic / Privacy"
     title="Privacy"
     accent="notes."
-    intro="Journal keeps a small record of the people and photographs on it. This page explains what is stored, where it goes, and how to export or remove it."
+    intro="Mosaic keeps a small record of the people, frames and conversations on it. This page explains what is stored, where it goes, and how to export or remove it."
   >
     <section>
       <h2>
@@ -21,26 +21,26 @@ const Privacy = () => (
 
     <section>
       <h2>
-        <span className="legal-index">02</span> Photographs and posts
+        <span className="legal-index">02</span> Frames and photographs
       </h2>
       <p>
         Each frame stores a reference to the image file, its ImageKit URLs (the
-        original and the generated thumbnails), an optional caption, and a
-        timestamp. Image files themselves are stored in ImageKit. Journal keeps
+        original and the generated thumbnails), an optional take, and a
+        timestamp. Image files themselves are stored in ImageKit. Mosaic keeps
         the ImageKit URL in MongoDB and asks ImageKit to serve resized versions
-        for the feed and profile grid.
+        for the feed and portfolio grid.
       </p>
     </section>
 
     <section>
       <h2>
-        <span className="legal-index">03</span> Likes, comments and follows
+        <span className="legal-index">03</span> Likes, replies and follows
       </h2>
       <p>
-        We store likes (which member liked which frame), comments (the text,
+        We store likes (which member liked which frame), replies (the text,
         author username, frame and timestamp), and follow relationships (who
-        follows whom). The counts shown on the feed and profiles are calculated
-        from this data.
+        follows whom). Replies are stored in the comments collection. The counts
+        shown on the feed and profiles are calculated from this data.
       </p>
     </section>
 
@@ -72,7 +72,7 @@ const Privacy = () => (
       <h2>
         <span className="legal-index">05</span> Third-party processors
       </h2>
-      <p>Journal relies on these providers to run:</p>
+      <p>Mosaic relies on these providers to run:</p>
       <ul>
         <li>
           <strong>Vercel</strong> serves the frontend and runs Vercel Analytics.
@@ -82,7 +82,7 @@ const Privacy = () => (
           operational logs.
         </li>
         <li>
-          <strong>MongoDB Atlas</strong> stores account, post, like, comment,
+          <strong>MongoDB Atlas</strong> stores account, frame, like, reply,
           follow and blacklist records.
         </li>
         <li>
@@ -96,7 +96,7 @@ const Privacy = () => (
       </ul>
       <p>
         Each provider handles data under its own terms and privacy policy.
-        Journal does not control their retention periods, and these providers
+        Mosaic does not control their retention periods, and these providers
         may process data outside your country.
       </p>
     </section>
@@ -106,15 +106,15 @@ const Privacy = () => (
         <span className="legal-index">06</span> Retention
       </h2>
       <p>
-        Account details, posts, likes, comments and follows stay while your
+        Account details, frames, likes, replies and follows stay while your
         account exists and the content is not deleted. Deleted frames lose
-        their MongoDB record, likes and comments. The image file may stay in
+        their MongoDB record, likes and replies. The image file may stay in
         ImageKit at its URL, as described below.
       </p>
       <p>
         Logout blacklist entries expire within 24 hours. Provider logs and
         backups follow each provider&rsquo;s own retention periods, and copies of
-        deleted records may remain there for a limited time. Journal does not
+        deleted records may remain there for a limited time. Mosaic does not
         keep separate analytics profiles.
       </p>
     </section>
@@ -124,13 +124,13 @@ const Privacy = () => (
         <span className="legal-index">07</span> Deleting content and accounts
       </h2>
       <p>
-        You can delete your own frames from the frame menu. That removes the
-        database record, its likes, and its comments. The original image may
+        You can delete your own frames from the frame actions. That removes the
+        database record, its likes, and its replies. The original image may
         remain available at its ImageKit URL after the frame is deleted.
       </p>
       <p>
         You can delete your account from Settings. That removes the account
-        record, posts, comments, likes and follow relationships, and ends the
+        record, frames, replies, likes and follow relationships, and ends the
         current session. The same page can prepare a JSON export of those
         records. ImageKit image files are not deleted by account deletion, so
         they may remain available at their URLs. Email{" "}

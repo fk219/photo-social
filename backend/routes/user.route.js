@@ -14,7 +14,7 @@ const userRouter = express.Router();
 
 /**
  * @route GET /api/users/:username
- * @description Public profile and paginated contact sheet
+ * @description Public profile and paginated portfolio
  * @access Public (isFollowing is set when a cookie is present)
  */
 userRouter.get("/:username", identifyUserOptional, getProfileController);

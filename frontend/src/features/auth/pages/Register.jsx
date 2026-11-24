@@ -13,7 +13,7 @@ const Register = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState("");
 
-  const redirectTo = location.state?.from?.pathname || "/";
+  const redirectTo = location.state?.from?.pathname || "/explore";
 
   const updateField = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
@@ -70,128 +70,170 @@ const Register = () => {
   };
 
   return (
-    <main className="auth-page">
-      <section className="auth-card" aria-labelledby="register-title">
-        <div className="auth-meta">
-          <span>Journal / Photo journal</span>
-          <span>Join</span>
-        </div>
-
-        <h1 id="register-title">
-          Start your <em>journal.</em>
-        </h1>
-        <p className="auth-lede">
-          A username, an email, and a place for your first frame.
-        </p>
-
-        {error && (
-          <p className="form-error" role="alert">
-            {error}
-          </p>
-        )}
-
-        <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="register-email">Email</label>
-            <input
-              id="register-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={form.email}
-              onChange={updateField("email")}
-              placeholder="you@example.com"
-              aria-invalid={Boolean(fieldErrors.email)}
-              aria-describedby={
-                fieldErrors.email ? "register-email-error" : undefined
-              }
-              disabled={loading}
-            />
-            {fieldErrors.email && (
-              <p className="field-error" id="register-email-error">
-                {fieldErrors.email}
-              </p>
-            )}
-          </div>
-
-          <div className="field">
-            <label htmlFor="register-username">Username</label>
-            <input
-              id="register-username"
-              name="username"
-              type="text"
-              autoComplete="username"
-              value={form.username}
-              onChange={updateField("username")}
-              placeholder="yourname"
-              aria-invalid={Boolean(fieldErrors.username)}
-              aria-describedby={
-                fieldErrors.username ? "register-username-error" : undefined
-              }
-              disabled={loading}
-            />
-            {fieldErrors.username && (
-              <p className="field-error" id="register-username-error">
-                {fieldErrors.username}
-              </p>
-            )}
-          </div>
-
-          <div className="field">
-            <label htmlFor="register-password">Password</label>
-            <input
-              id="register-password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              value={form.password}
-              onChange={updateField("password")}
-              placeholder="Choose a password"
-              aria-invalid={Boolean(fieldErrors.password)}
-              aria-describedby={
-                fieldErrors.password ? "register-password-error" : undefined
-              }
-              disabled={loading}
-            />
-            {fieldErrors.password && (
-              <p className="field-error" id="register-password-error">
-                {fieldErrors.password}
-              </p>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            className={`button primary-button auth-submit${
-              loading ? " is-loading" : ""
-            }`}
-            disabled={loading}
-            aria-busy={loading}
-          >
-            {loading ? (
-              <>
-                <span className="spinner" aria-hidden="true" />
-                Creating account…
-              </>
-            ) : (
-              "Create account"
-            )}
-          </button>
-        </form>
-
-        <p className="auth-switch">
-          Already have a contact sheet?{" "}
-          <Link to="/login" state={location.state}>
-            Sign in
+    <main className="auth-page" id="main-content">
+      <div className="auth-shell">
+        <section className="auth-stage" aria-label="About Mosaic">
+          <Link to="/explore" className="auth-wordmark">
+            Mosaic
           </Link>
-        </p>
 
-        <nav className="auth-legal" aria-label="Legal">
-          <Link to="/privacy">Privacy</Link>
-          <span aria-hidden="true">·</span>
-          <Link to="/terms">Terms</Link>
-        </nav>
-      </section>
+          <div className="auth-stage-copy">
+            <p className="eyebrow">Image-first conversations</p>
+            <p className="auth-display">
+              Work worth a <em>second look.</em>
+            </p>
+            <p className="auth-stage-lede">
+              Post the frame, write the take, and let the people who care about
+              images answer in a thread that stays attached to the work.
+            </p>
+          </div>
+
+          <ol className="auth-loop">
+            <li>
+              <span>01</span>
+              <strong>Post a frame</strong>
+              <p>One photograph and the take behind it.</p>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>Follow the thread</strong>
+              <p>Replies arrive as a conversation, not a comment pile.</p>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>Build a portfolio</strong>
+              <p>Every profile is a public body of work.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section className="auth-card" aria-labelledby="register-title">
+          <div className="auth-meta">
+            <span>Mosaic / Join</span>
+            <span>New account</span>
+          </div>
+
+          <h1 id="register-title">
+            Start your <em>mosaic.</em>
+          </h1>
+          <p className="auth-lede">
+            One username, one email, and a place for your first frame.
+          </p>
+
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
+
+          <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            <div className="field">
+              <label htmlFor="register-email">Email</label>
+              <input
+                id="register-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={updateField("email")}
+                placeholder="you@example.com"
+                aria-invalid={Boolean(fieldErrors.email)}
+                aria-describedby={
+                  fieldErrors.email ? "register-email-error" : undefined
+                }
+                disabled={loading}
+              />
+              {fieldErrors.email && (
+                <p className="field-error" id="register-email-error">
+                  {fieldErrors.email}
+                </p>
+              )}
+            </div>
+
+            <div className="field">
+              <label htmlFor="register-username">Username</label>
+              <input
+                id="register-username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                value={form.username}
+                onChange={updateField("username")}
+                placeholder="yourname"
+                aria-invalid={Boolean(fieldErrors.username)}
+                aria-describedby={
+                  fieldErrors.username ? "register-username-error" : undefined
+                }
+                disabled={loading}
+              />
+              {fieldErrors.username && (
+                <p className="field-error" id="register-username-error">
+                  {fieldErrors.username}
+                </p>
+              )}
+            </div>
+
+            <div className="field">
+              <label htmlFor="register-password">Password</label>
+              <input
+                id="register-password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                value={form.password}
+                onChange={updateField("password")}
+                placeholder="At least 6 characters"
+                aria-invalid={Boolean(fieldErrors.password)}
+                aria-describedby={
+                  fieldErrors.password
+                    ? "register-password-error"
+                    : "register-password-hint"
+                }
+                disabled={loading}
+              />
+              {fieldErrors.password ? (
+                <p className="field-error" id="register-password-error">
+                  {fieldErrors.password}
+                </p>
+              ) : (
+                <p className="field-hint" id="register-password-hint">
+                  Use 6 characters or more.
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className={`button primary-button auth-submit${
+                loading ? " is-loading" : ""
+              }`}
+              disabled={loading}
+              aria-busy={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  Creating account...
+                </>
+              ) : (
+                "Create account"
+              )}
+            </button>
+          </form>
+
+          <p className="auth-switch">
+            Already part of Mosaic?{" "}
+            <Link to="/login" state={location.state}>
+              Sign in
+            </Link>
+          </p>
+
+          <nav className="auth-legal" aria-label="Legal">
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+          </nav>
+        </section>
+      </div>
     </main>
   );
 };

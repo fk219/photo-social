@@ -42,7 +42,7 @@ const buildCursorMatch = (cursorPost, cursorId) => {
 };
 
 /**
- * One pipeline for both the public feed and a profile's contact sheet.
+ * One pipeline for both the public feed and a profile's portfolio.
  * Counts come from $lookup rather than trusting only the denormalised fields,
  * which keeps posts created before those fields existed accurate.
  */
@@ -52,6 +52,7 @@ const buildPostPipeline = ({
     cursorId = null,
     limit = DEFAULT_LIMIT,
     viewerUsername = null,
+    includeRecentComments = false,
 }) => {
     const pipeline = [];
 
@@ -116,6 +117,55 @@ const buildPostPipeline = ({
         }
     );
 
+    if (includeRecentComments) {
+        pipeline.push({
+            $lookup: {
+                from: "comments",
+                let: { postId: "$_id" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ["$post", "$$postId"] },
+                        },
+                    },
+                    { $sort: { _id: 1 } },
+                    { $limit: 2 },
+                    {
+                        $lookup: {
+                            from: "users",
+                            let: { commenter: "$user" },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $eq: ["$username", "$$commenter"],
+                                        },
+                                    },
+                                },
+                                { $project: { profile_image: 1 } },
+                            ],
+                            as: "commenter",
+                        },
+                    },
+                    {
+                        $project: {
+                            text: 1,
+                            user: 1,
+                            createdAt: 1,
+                            profile_image: {
+                                $arrayElemAt: [
+                                    "$commenter.profile_image",
+                                    0,
+                                ],
+                            },
+                        },
+                    },
+                ],
+                as: "recentComments",
+            },
+        });
+    }
+
     if (viewerUsername) {
         pipeline.push({
             $lookup: {
@@ -158,6 +208,9 @@ const buildPostPipeline = ({
                     0,
                 ],
             },
+            recentComments: includeRecentComments
+                ? { $ifNull: ["$recentComments", []] }
+                : { $literal: [] },
             isLiked: viewerUsername
                 ? { $gt: [{ $size: "$viewerLike" }, 0] }
                 : { $literal: false },

@@ -4,6 +4,7 @@ const postModel = require("../models/post.model");
 const likeModel = require("../models/like.model");
 const commentModel = require("../models/comment.model");
 const userModel = require("../models/user.model");
+const followModel = require("../models/follow.model");
 const {
     parseLimit,
     buildPostPipeline,
@@ -173,6 +174,15 @@ const getPostDetailsController = async (req, res) => {
 
 const getFeedController = async (req, res) => {
     const limit = parseLimit(req.query.limit);
+    const scope = req.query.scope === "following" ? "following" : "all";
+    const viewerUsername = req.user?.username ?? null;
+
+    if (scope === "following" && !viewerUsername) {
+        return res.status(401).json({
+            message: "Sign in to see the accounts you follow.",
+        });
+    }
+
     const { cursorId, cursorPost, error } = await findCursorPost(
         req.query.cursor
     );
@@ -181,12 +191,40 @@ const getFeedController = async (req, res) => {
         return res.status(400).json({ message: error });
     }
 
+    let match = {};
+
+    if (scope === "following") {
+        const followees = await followModel.distinct("followee", {
+            follower: viewerUsername,
+            status: { $ne: "rejected" },
+        });
+        // A member's own frames belong in their home feed alongside the
+        // accounts they follow.
+        const usernames = [...new Set([...followees, viewerUsername])];
+        const authorIds = await userModel.distinct("_id", {
+            username: { $in: usernames },
+        });
+
+        if (authorIds.length === 0) {
+            return res.status(200).json({
+                message: "Feed fetched successfully.",
+                posts: [],
+                nextCursor: null,
+                scope,
+            });
+        }
+
+        match = { user: { $in: authorIds } };
+    }
+
     const rows = await postModel.aggregate(
         buildPostPipeline({
+            match,
             cursorId,
             cursorPost,
             limit,
-            viewerUsername: req.user.username,
+            viewerUsername,
+            includeRecentComments: true,
         })
     );
 
@@ -196,6 +234,7 @@ const getFeedController = async (req, res) => {
         message: "Feed fetched successfully.",
         posts,
         nextCursor,
+        scope,
     });
 };
 

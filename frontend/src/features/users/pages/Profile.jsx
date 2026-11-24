@@ -5,8 +5,7 @@ import Avatar from "../../shared/components/Avatar";
 import { getErrorMessage } from "../../shared/utils/error";
 import {
   formatCount,
-  formatFrameNumber,
-  formatJournalDate,
+  formatMonthDate,
   getUserAvatar,
 } from "../../shared/utils/format";
 import {
@@ -21,7 +20,7 @@ const BIO_LIMIT = 160;
 
 const ProfileSkeleton = () => (
   <div className="profile-skeleton" role="status">
-    <span className="sr-only">Loading this contact sheet…</span>
+    <span className="sr-only">Loading this portfolio...</span>
     <div className="profile-skeleton-header">
       <span className="profile-skeleton-avatar" />
       <div className="profile-skeleton-lines">
@@ -50,6 +49,7 @@ const Profile = () => {
   const [error, setError] = useState("");
   const [loadMoreError, setLoadMoreError] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [followBusy, setFollowBusy] = useState(false);
   const [actionError, setActionError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -83,10 +83,10 @@ const Profile = () => {
         if (!active) return;
         setError(
           err?.response?.status === 404
-            ? "No photographer goes by that name. The page may have moved."
+            ? "No creator goes by that name. The page may have moved."
             : getErrorMessage(
                 err,
-                "This contact sheet could not be loaded."
+                "This portfolio could not be loaded. Try again."
               )
         );
       })
@@ -97,7 +97,7 @@ const Profile = () => {
     return () => {
       active = false;
     };
-  }, [username]);
+  }, [username, reloadKey, user?.username]);
 
   useEffect(() => {
     if (!copied) return undefined;
@@ -238,7 +238,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <main className="profile-page">
+      <main className="profile-page" id="main-content">
         <div className="profile-shell">
           <ProfileSkeleton />
         </div>
@@ -248,18 +248,27 @@ const Profile = () => {
 
   if (error || !profile) {
     return (
-      <main className="profile-page">
+      <main className="profile-page" id="main-content">
         <div className="profile-shell">
-          <Link to="/" className="profile-back">
-            <span aria-hidden="true">←</span> Back to contact sheet
+          <Link to="/explore" className="back-link">
+            Back to Explore
           </Link>
           <section className="profile-message" role="alert">
             <p className="eyebrow">Portfolio unavailable</p>
-            <h1>That page didn&rsquo;t develop.</h1>
+            <h1>This body of work did not load.</h1>
             <p>{error || "This profile could not be found."}</p>
-            <Link to="/" className="button ghost-button">
-              Return to the journal
-            </Link>
+            <div className="profile-message-actions">
+              <button
+                type="button"
+                className="button primary-button"
+                onClick={() => setReloadKey((key) => key + 1)}
+              >
+                Try again
+              </button>
+              <Link to="/explore" className="button ghost-button">
+                Browse Explore
+              </Link>
+            </div>
           </section>
         </div>
       </main>
@@ -267,10 +276,10 @@ const Profile = () => {
   }
 
   return (
-    <main className="profile-page">
+    <main className="profile-page" id="main-content">
       <div className="profile-shell">
-        <Link to="/" className="profile-back">
-          <span aria-hidden="true">←</span> Back to contact sheet
+        <Link to="/explore" className="back-link">
+          Back to Explore
         </Link>
 
         <header className="profile-header">
@@ -282,7 +291,7 @@ const Profile = () => {
             />
 
             <div className="profile-copy">
-              <p className="eyebrow">Public contact sheet</p>
+              <p className="eyebrow">Portfolio</p>
               <h1>@{profile.username}</h1>
               {profile.bio ? (
                 <p className="profile-bio">{profile.bio}</p>
@@ -325,7 +334,7 @@ const Profile = () => {
                   to="/create-post"
                   className="button primary-button profile-action"
                 >
-                  Add frame
+                  New frame
                 </Link>
               </>
             ) : user ? (
@@ -337,9 +346,6 @@ const Profile = () => {
                 onClick={toggleFollow}
                 disabled={followBusy}
                 aria-pressed={profile.isFollowing}
-                title={
-                  profile.isFollowing ? "Unfollow" : "Follow"
-                }
                 aria-label={
                   profile.isFollowing
                     ? `Unfollow @${profile.username}`
@@ -347,7 +353,7 @@ const Profile = () => {
                 }
               >
                 {followBusy
-                  ? "Saving…"
+                  ? "Saving..."
                   : profile.isFollowing
                     ? "Following"
                     : "Follow"}
@@ -398,7 +404,7 @@ const Profile = () => {
                     setBioDraft(event.target.value);
                     setBioError("");
                   }}
-                  placeholder="Photographer, printer, collector of quiet frames…"
+                  placeholder="Photographer, designer, illustrator. Say what you make."
                   aria-invalid={Boolean(bioError)}
                   aria-describedby={
                     bioError ? "profile-bio-error" : undefined
@@ -425,7 +431,7 @@ const Profile = () => {
                   {savingBio ? (
                     <>
                       <span className="spinner" aria-hidden="true" />
-                      Saving…
+                      Saving...
                     </>
                   ) : (
                     "Save bio"
@@ -444,38 +450,44 @@ const Profile = () => {
           )}
         </header>
 
-        <section className="profile-sheet" aria-labelledby="profile-sheet-title">
-          <div className="profile-sheet-header">
-            <h2 id="profile-sheet-title">Contact sheet</h2>
-            <span className="profile-sheet-count">
-              {formatCount(profile.postsCount)} frames
+        <section className="portfolio" aria-labelledby="portfolio-title">
+          <div className="portfolio-head">
+            <div>
+              <p className="eyebrow">Work and threads</p>
+              <h2 id="portfolio-title">The portfolio</h2>
+            </div>
+            <span className="portfolio-count">
+              {formatCount(profile.postsCount)}{" "}
+              {profile.postsCount === 1 ? "frame" : "frames"}
             </span>
           </div>
 
           {posts.length === 0 ? (
             <div className="profile-empty">
-              <p className="eyebrow">Roll empty</p>
-              <h3>No frames developed yet.</h3>
+              <p className="eyebrow">Empty wall</p>
+              <h3>No frames on this wall yet.</h3>
               <p>
                 {isOwner
-                  ? "Add the first photograph to open this public portfolio."
-                  : "Check back after the next darkroom session."}
+                  ? "Post the first frame to open this public portfolio."
+                  : "Check back when this creator posts their next frame."}
               </p>
               {isOwner && (
                 <Link to="/create-post" className="button primary-button">
-                  Add the first frame
+                  Post a frame
                 </Link>
               )}
             </div>
           ) : (
             <>
               <div className="profile-grid">
-                {posts.map((post, index) => {
+                {posts.map((post) => {
                   const caption =
                     typeof post.caption === "string"
                       ? post.caption.trim()
                       : "";
-                  const postedAt = formatJournalDate(post.createdAt);
+                  const postedAt = formatMonthDate(post.createdAt);
+                  const replies = Number(post.commentsCount) || 0;
+                  const likes = Number(post.likesCount) || 0;
 
                   return (
                     <figure className="profile-frame" key={post._id}>
@@ -484,9 +496,9 @@ const Profile = () => {
                         target="_blank"
                         rel="noreferrer"
                         className="profile-frame-link"
-                        aria-label={`Open frame ${formatFrameNumber(
-                          index
-                        )}${caption ? `: ${caption.slice(0, 80)}` : ""}`}
+                        aria-label={`Open the full photograph by @${
+                          profile.username
+                        } in a new tab${caption ? `: ${caption.slice(0, 80)}` : ""}`}
                       >
                         <span className="profile-frame-media">
                           <img
@@ -497,26 +509,30 @@ const Profile = () => {
                                     0,
                                     120
                                   )}`
-                                : `Photograph by @${profile.username}, frame ${formatFrameNumber(
-                                    index
-                                  )}`
+                                : `Photograph by @${profile.username}`
                             }
                             loading="lazy"
                             decoding="async"
                           />
-                          {caption && (
-                            <span
-                              className="profile-frame-caption"
-                              aria-hidden="true"
-                            >
-                              {caption}
+                          {replies > 0 && (
+                            <span className="profile-frame-thread">
+                              {formatCount(replies)}{" "}
+                              {replies === 1 ? "reply" : "replies"}
                             </span>
                           )}
                         </span>
-                        <figcaption className="profile-frame-meta">
-                          <span>Frame {formatFrameNumber(index)}</span>
-                          {postedAt && <span>{postedAt}</span>}
-                        </figcaption>
+                        <span className="profile-frame-meta">
+                          <span className="profile-frame-take">
+                            {caption || "Frame without a written take"}
+                          </span>
+                          <span className="profile-frame-sub">
+                            {postedAt && <span>{postedAt}</span>}
+                            <span>
+                              {formatCount(likes)}{" "}
+                              {likes === 1 ? "like" : "likes"}
+                            </span>
+                          </span>
+                        </span>
                       </a>
                     </figure>
                   );
@@ -543,7 +559,7 @@ const Profile = () => {
                     {loadingMore ? (
                       <>
                         <span className="spinner" aria-hidden="true" />
-                        Loading frames…
+                        Loading frames...
                       </>
                     ) : (
                       "Load more frames"
@@ -551,7 +567,8 @@ const Profile = () => {
                   </button>
                 ) : (
                   <p className="profile-end">
-                    End of the roll · {posts.length} frames
+                    {posts.length} {posts.length === 1 ? "frame" : "frames"}.
+                    End of this portfolio.
                   </p>
                 )}
               </div>
@@ -560,10 +577,10 @@ const Profile = () => {
         </section>
 
         <footer className="profile-legal">
-          <p>Journal, a photo journal</p>
-          <nav aria-label="Legal">
+          <p>Mosaic. Image-first conversations.</p>
+          <nav aria-label="Mosaic">
+            <Link to="/explore">Explore</Link>
             <Link to="/privacy">Privacy</Link>
-            <span aria-hidden="true">·</span>
             <Link to="/terms">Terms</Link>
           </nav>
         </footer>
