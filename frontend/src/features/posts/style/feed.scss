@@ -176,14 +176,22 @@
 }
 
 .post {
+  position: relative;
+  min-width: 0;
+  animation: post-rise 0.6s $ease-out both;
+  animation-delay: var(--post-delay, 0ms);
+}
+
+.post-card {
   @include paper-surface;
   position: relative;
   min-width: 0;
   overflow: hidden;
+  background-color: $gallery-soft;
+  border: 1px solid rgba(22, 19, 13, 0.12);
   border-radius: $radius-card;
-  box-shadow: 0 34px 80px -56px rgba(0, 0, 0, 0.95);
-  animation: post-rise 0.6s $ease-out both;
-  animation-delay: var(--post-delay, 0ms);
+  box-shadow: 0 30px 70px -52px rgba(0, 0, 0, 0.95),
+    0 2px 8px -4px rgba(0, 0, 0, 0.25);
 }
 
 @keyframes post-rise {
@@ -201,15 +209,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.9rem;
-  padding: 0.85rem 1.1rem;
-  border-bottom: 1px solid $gallery-line;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.65rem 0.9rem;
 }
 
 .post-author {
   display: inline-flex;
   align-items: center;
-  gap: 0.68rem;
+  gap: 0.62rem;
   min-width: 0;
   min-height: 44px;
 
@@ -221,16 +229,17 @@
 .post-author-copy {
   display: flex;
   flex-direction: column;
-  gap: 0.08rem;
+  gap: 0.04rem;
   min-width: 0;
 }
 
 .post-author-name {
   overflow: hidden;
   color: $gallery-ink;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 600;
   letter-spacing: 0.005em;
+  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color 0.2s $ease-out;
@@ -238,29 +247,32 @@
 
 .post-time {
   color: $gallery-muted;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.02em;
+  line-height: 1.35;
 }
 
 .post-owner-tag {
   flex: none;
-  padding: 0.24rem 0.45rem;
-  border: 1px solid rgba(169, 43, 19, 0.35);
-  border-radius: 2px;
+  padding: 0.22rem 0.5rem;
+  border: 1px solid rgba(169, 43, 19, 0.32);
+  border-radius: 999px;
   color: $vermilion-deep;
   font-size: 0.57rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  line-height: 1.3;
+  letter-spacing: 0.11em;
+  line-height: 1.35;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .post-media {
   position: relative;
-  aspect-ratio: 4 / 3;
-  max-height: 600px;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 4 / 5;
+  max-height: 720px;
   overflow: hidden;
   background-color: $gallery-deep;
 
@@ -268,14 +280,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 9px;
-    border: 1px solid rgba(246, 240, 228, 0.24);
-    pointer-events: none;
   }
 }
 
@@ -286,6 +290,7 @@
   justify-content: center;
   gap: 0.6rem;
   height: 100%;
+  min-height: 280px;
   padding: 2rem;
   background-color: $gallery-deep;
   color: $gallery-muted;
@@ -313,158 +318,75 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 1.15rem 1.2rem 1rem;
-}
-
-/* Side-by-side frame and thread on wide screens. The image stays the hero,
-   while the take and first replies stay visible without scrolling. */
-@media (min-width: 960px) {
-  .post {
-    display: grid;
-    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
-    grid-template-areas:
-      "head head"
-      "media body";
-  }
-
-  .post-head {
-    grid-area: head;
-  }
-
-  .post-media {
-    grid-area: media;
-    height: 100%;
-    min-height: 380px;
-    max-height: none;
-    aspect-ratio: auto;
-  }
-
-  .post-body {
-    grid-area: body;
-  }
-}
-
-.post-take {
-  min-width: 0;
-}
-
-.post-kicker {
-  margin-bottom: 0.42rem;
-  color: $cobalt-deep;
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.17em;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
-.post-take-text {
-  color: $gallery-ink;
-  font-family: $font-display;
-  font-size: clamp(1.55rem, 3vw, 2.05rem);
-  font-weight: 400;
-  letter-spacing: -0.015em;
-  line-height: 1.08;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-
-  &.is-clamped {
-    display: -webkit-box;
-    overflow: hidden;
-    white-space: normal;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-  }
-}
-
-.post-take-empty {
-  color: $gallery-muted;
-  font-family: $font-display;
-  font-size: 1.3rem;
-  font-style: italic;
-  line-height: 1.2;
-}
-
-.take-toggle {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0;
-  margin-top: 0.15rem;
-  border: 0;
-  border-bottom: 1px solid $gallery-line-strong;
-  background: none;
-  color: $cobalt-deep;
-  font-size: 0.76rem;
-  font-weight: 600;
-  line-height: 1.2;
-  transition: color 0.2s $ease-out, border-color 0.2s $ease-out;
-
-  &:hover {
-    color: $vermilion-deep;
-    border-color: currentColor;
-  }
+  padding: 0.35rem 0.95rem 0.85rem;
 }
 
 .post-actions {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-top: 0.95rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid $gallery-line;
+  gap: 0.15rem;
+  margin-left: -0.4rem;
 }
 
 .post-action {
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
   min-height: 44px;
-  padding: 0.35rem 0.65rem;
+  padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: 50%;
   background: none;
-  color: $gallery-muted;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: color 0.2s $ease-out, background-color 0.2s $ease-out;
+  color: $gallery-ink;
+  transition: color 0.2s $ease-out, background-color 0.2s $ease-out,
+    transform 0.15s $ease-out;
 
   &:hover {
-    color: $gallery-ink;
     background-color: rgba(22, 19, 13, 0.06);
   }
 
+  &:active {
+    transform: scale(0.94);
+  }
+
   svg {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.65;
+    stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
 
-  &.post-like svg {
-    fill: currentColor;
-    stroke: none;
+  &.post-action--like.is-liked {
+    color: $vermilion-deep;
+
+    svg {
+      fill: currentColor;
+      stroke: currentColor;
+    }
   }
 
-  &.is-liked {
+  &.post-action--replies.is-open {
+    color: $cobalt-deep;
+    background-color: rgba(29, 62, 207, 0.09);
+  }
+
+  &.post-action--share {
+    margin-left: auto;
+  }
+
+  &.post-action--share.is-copied {
+    color: $cobalt-deep;
+  }
+
+  &.post-action--share.is-error {
     color: $vermilion-deep;
   }
-
-  &.post-replies.is-open {
-    color: $cobalt-deep;
-    background-color: rgba(29, 62, 207, 0.08);
-  }
-}
-
-.post-count {
-  color: currentColor;
-  font-size: 0.72rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
 }
 
 .like-glyph {
@@ -490,31 +412,256 @@
   }
 }
 
+.post-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.75rem;
+  min-height: 1.4rem;
+  padding: 0 0.05rem;
+}
+
+.post-likes {
+  color: $gallery-ink;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.post-share-status {
+  color: $cobalt-deep;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.45;
+
+  &.is-error {
+    color: $vermilion-deep;
+  }
+}
+
 .post-inline-error {
-  margin-top: 0.35rem;
+  margin-top: 0.3rem;
   color: $vermilion-deep;
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.5;
 }
 
-.post-thread {
-  position: relative;
-  margin-top: 0.55rem;
-  padding: 0.85rem 1.1rem 1rem;
-  background-color: #f0e6d6;
-  border: 1px solid rgba(22, 19, 13, 0.09);
-  border-radius: 3px;
-  scroll-margin-top: 5rem;
+.post-caption {
+  min-width: 0;
+  margin-top: 0.2rem;
+  padding: 0 0.05rem;
+}
 
-  &::before {
-    content: "";
-    position: absolute;
-    top: -0.55rem;
-    left: calc(1.1rem + 14px);
-    width: 2px;
-    height: 0.85rem;
-    background-color: $cobalt;
+.post-caption-text {
+  color: $gallery-ink;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+
+  &.is-clamped {
+    display: -webkit-box;
+    overflow: hidden;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+.post-caption-author {
+  color: inherit;
+  font-weight: 700;
+
+  &:hover {
+    color: $cobalt-deep;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.post-caption-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: -0.4rem 0 0;
+  padding: 0 0.05rem;
+  border: 0;
+  background: none;
+  color: $gallery-muted;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: color 0.2s $ease-out;
+
+  &:hover {
+    color: $gallery-ink;
+  }
+}
+
+.post-reply-preview {
+  min-width: 0;
+  margin-top: 0.55rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid $gallery-line;
+}
+
+.post-reply-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  list-style: none;
+}
+
+.post-reply {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: 0.55rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.post-reply .avatar--preview {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(22, 19, 13, 0.14);
+  background-color: $gallery-ink;
+  color: $gallery;
+  font-size: 0.52rem;
+}
+
+.post-reply-body {
+  min-width: 0;
+  padding-top: 0.05rem;
+}
+
+.post-reply-text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: $gallery-ink;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.post-reply-author {
+  color: inherit;
+  font-weight: 600;
+
+  &:hover {
+    color: $cobalt-deep;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.post-reply-time {
+  display: block;
+  margin-top: 0.1rem;
+  color: $gallery-muted;
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.post-reply-empty {
+  color: $gallery-muted;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.post-reply-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.85rem;
+  margin-top: 0.35rem;
+}
+
+.post-reply-open,
+.post-reply-write {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: color 0.2s $ease-out, text-decoration-color 0.2s $ease-out;
+}
+
+.post-reply-open {
+  color: $gallery-muted;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: rgba(22, 19, 13, 0.26);
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: $cobalt-deep;
+    text-decoration-color: currentColor;
+  }
+}
+
+.post-reply-write {
+  color: $gallery-ink;
+
+  &:hover {
+    color: $cobalt-deep;
+  }
+}
+
+.post-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.85rem;
+  min-width: 0;
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid $gallery-line;
+}
+
+.post-date {
+  color: $gallery-muted;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+.post-delete {
+  flex: none;
+  font-size: 0.72rem;
+}
+
+.post-thread {
+  @include paper-surface;
+  position: relative;
+  margin-top: 0.6rem;
+  padding: 0.9rem 1rem 1rem;
+  background-color: $gallery-soft;
+  border: 1px solid rgba(22, 19, 13, 0.12);
+  border-radius: $radius-card;
+  box-shadow: 0 24px 60px -52px rgba(0, 0, 0, 0.95);
+  scroll-margin-top: 5rem;
+  animation: thread-reveal 0.25s $ease-out both;
+}
+
+@keyframes thread-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -546,17 +693,6 @@
   font-size: 0.72rem;
 }
 
-.thread-preview {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-top: 0.55rem;
-  padding: 0;
-  list-style: none;
-}
-
-.thread-preview::before,
 .reply-list::before {
   content: "";
   position: absolute;
@@ -601,7 +737,7 @@
 }
 
 .post-thread .avatar--reply {
-  border-color: #f0e6d6;
+  border-color: $gallery-soft;
 }
 
 .reply-body {
@@ -643,14 +779,6 @@
   white-space: pre-wrap;
 }
 
-.reply--preview .reply-text {
-  display: -webkit-box;
-  overflow: hidden;
-  white-space: normal;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
 .reply.is-pending {
   background-color: rgba(22, 19, 13, 0.03);
 }
@@ -677,67 +805,11 @@
   font-size: 0.72rem;
 }
 
-.thread-preview-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.4rem 0.9rem;
-  padding-top: 0.55rem;
-  border-top: 1px dashed $gallery-line;
-}
-
-.thread-open-button {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: $gallery-muted;
-  font-size: 0.76rem;
-  font-weight: 600;
-  text-align: left;
-  text-decoration: underline;
-  text-decoration-color: rgba(22, 19, 13, 0.28);
-  text-underline-offset: 3px;
-  transition: color 0.2s $ease-out, text-decoration-color 0.2s $ease-out;
-
-  &:hover {
-    color: $cobalt-deep;
-    text-decoration-color: currentColor;
-  }
-}
-
-.thread-reply-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0.45rem 0.95rem;
-  border: 1px solid $gallery-ink;
-  border-radius: 999px;
-  background-color: transparent;
-  color: $gallery-ink;
-  font-size: 0.76rem;
-  font-weight: 600;
-  transition: background-color 0.2s $ease-out, color 0.2s $ease-out;
-
-  &:hover {
-    background-color: $gallery-ink;
-    color: $gallery;
-  }
-}
-
 .thread-empty {
   padding: 0.55rem 0;
   color: $gallery-muted;
   font-size: 0.84rem;
   line-height: 1.55;
-}
-
-.thread-empty--compact {
-  padding: 0.35rem 0 0.7rem;
 }
 
 .thread-more {
@@ -807,8 +879,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.15rem 0.85rem;
-  margin-top: 0.55rem;
+  gap: 0.15rem 0.75rem;
+  margin-top: 0.35rem;
   padding-top: 0.55rem;
   border-top: 1px dashed $gallery-line;
 }
@@ -816,6 +888,7 @@
 .post-owner-confirm {
   color: $gallery-muted;
   font-size: 0.74rem;
+  line-height: 1.5;
 }
 
 // Skeletons
@@ -832,16 +905,18 @@
 .post-skeleton {
   @include paper-surface;
   overflow: hidden;
+  background-color: $gallery-soft;
+  border: 1px solid rgba(22, 19, 13, 0.12);
   border-radius: $radius-card;
-  box-shadow: 0 34px 80px -56px rgba(0, 0, 0, 0.95);
+  box-shadow: 0 30px 70px -52px rgba(0, 0, 0, 0.95),
+    0 2px 8px -4px rgba(0, 0, 0, 0.25);
 }
 
 .skeleton-head {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.95rem 1.1rem;
-  border-bottom: 1px solid $gallery-line;
+  padding: 0.65rem 0.9rem;
 }
 
 .skeleton-head-copy {
@@ -851,15 +926,16 @@
 }
 
 .skeleton-photo {
-  aspect-ratio: 4 / 3;
-  max-height: 600px;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 720px;
 }
 
 .skeleton-body {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  padding: 1.15rem 1.2rem 1.2rem;
+  padding: 0.95rem 1rem 1.1rem;
 }
 
 .skeleton-avatar {
@@ -1317,10 +1393,21 @@
 }
 
 @media (max-width: 700px) {
-  .post-media,
+  .post-media {
+    aspect-ratio: auto;
+    max-height: 72vh;
+  }
+
+  .post-media > img {
+    width: 100%;
+    height: auto;
+    max-height: 72vh;
+    object-fit: cover;
+  }
+
   .skeleton-photo {
     aspect-ratio: 4 / 5;
-    max-height: none;
+    max-height: 72vh;
   }
 }
 
@@ -1345,32 +1432,23 @@
   }
 
   .post-head {
-    padding: 0.75rem 0.9rem;
+    padding: 0.6rem 0.8rem;
   }
 
   .post-body {
-    padding: 1rem 0.95rem 0.9rem;
+    padding: 0.3rem 0.8rem 0.8rem;
   }
 
-  .post-take-text {
-    font-size: clamp(1.45rem, 6vw, 1.75rem);
-  }
-
-  .post-action {
-    padding-right: 0.5rem;
-    padding-left: 0.5rem;
+  .post-caption-text {
+    font-size: 0.9rem;
   }
 
   .post-thread {
-    padding: 0.8rem 0.9rem 0.9rem;
-
-    &::before {
-      left: calc(0.9rem + 14px);
-    }
+    padding: 0.8rem 0.85rem 0.9rem;
   }
 
-  .thread-preview-foot {
-    gap: 0.3rem 0.7rem;
+  .post-reply-actions {
+    gap: 0.2rem 0.7rem;
   }
 
   .guest-note {
@@ -1379,11 +1457,11 @@
   }
 
   .skeleton-head {
-    padding: 0.85rem 0.9rem;
+    padding: 0.6rem 0.8rem;
   }
 
   .skeleton-body {
-    padding: 1rem 0.95rem;
+    padding: 0.9rem 0.8rem 1rem;
   }
 
   .feed-message {
@@ -1403,11 +1481,9 @@
 
 @media (max-width: 390px) {
   .post-owner-tag {
-    display: none;
-  }
-
-  .post-action {
-    font-size: 0.76rem;
+    padding: 0.2rem 0.42rem;
+    font-size: 0.54rem;
+    letter-spacing: 0.08em;
   }
 }
 
@@ -1416,11 +1492,18 @@
     animation: none;
   }
 
+  .post-thread {
+    animation: none;
+  }
+
+  .post-action:active {
+    transform: none;
+  }
+
   .like-glyph.is-pulsing {
     animation: none;
   }
 
-  .thread-preview::before,
   .reply-list::before {
     animation: none;
   }

@@ -13,6 +13,7 @@ import {
 } from "../../shared/utils/format";
 
 const TAKE_LIMIT = 200;
+const SHARE_STATUS_MS = 2600;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -33,6 +34,8 @@ const Post = ({ post, index = 0 }) => {
   const liked = Boolean(post?.isLiked);
   const isOwner =
     Boolean(viewer?.username) && viewer.username === author?.username;
+  const likesLabel =
+    likesCount === 1 ? "1 like" : `${formatCount(likesCount)} likes`;
 
   const [imageSrc, setImageSrc] = useState(
     post?.thumbnail_url || post?.image_url || ""
@@ -45,6 +48,7 @@ const Post = ({ post, index = 0 }) => {
   const [liking, setLiking] = useState(false);
   const [likeError, setLikeError] = useState("");
   const [pulse, setPulse] = useState(false);
+  const [shareState, setShareState] = useState("idle");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -52,6 +56,12 @@ const Post = ({ post, index = 0 }) => {
   const captionId = useId();
   const threadId = useId();
   const repliesButtonRef = useRef(null);
+  const viewAllButtonRef = useRef(null);
+  const replyButtonRef = useRef(null);
+  const threadCloseRef = useRef(null);
+  const threadTriggerRef = useRef("comment");
+  const focusThreadRef = useRef(false);
+  const shareTimerRef = useRef(null);
 
   const originalImage = post?.image_url || "";
   const thumbnailImage = post?.thumbnail_url || originalImage;
@@ -67,6 +77,13 @@ const Post = ({ post, index = 0 }) => {
     setImageSrc(thumbnailImage);
     setImageFailed(false);
   }, [thumbnailImage]);
+
+  useEffect(
+    () => () => {
+      if (shareTimerRef.current) window.clearTimeout(shareTimerRef.current);
+    },
+    []
+  );
 
   const handleCountChange = useCallback(
     (count) => {
@@ -87,6 +104,8 @@ const Post = ({ post, index = 0 }) => {
     const unsubscribe = subscribeToThreads((requestedId) => {
       if (requestedId !== postId) return;
 
+      threadTriggerRef.current = "comment";
+      focusThreadRef.current = false;
       setFocusRequest(0);
       setThreadOpen(true);
       timer = window.setTimeout(() => {
@@ -105,24 +124,59 @@ const Post = ({ post, index = 0 }) => {
     };
   }, [postId]);
 
+  const openThread = (trigger = "comment") => {
+    threadTriggerRef.current = trigger;
+    focusThreadRef.current =
+      trigger === "view-all" || (trigger === "reply" && !viewer);
+    setThreadOpen(true);
+  };
+
   const openReply = () => {
+    threadTriggerRef.current = "reply";
+    focusThreadRef.current = !viewer;
     setThreadOpen(true);
     setFocusRequest((request) => request + 1);
   };
 
   const closeThread = () => {
+    const trigger = threadTriggerRef.current;
+
     setThreadOpen(false);
     setFocusRequest(0);
-    window.requestAnimationFrame(() => repliesButtonRef.current?.focus());
+    window.requestAnimationFrame(() => {
+      let returnTarget = repliesButtonRef.current;
+
+      if (trigger === "view-all") {
+        returnTarget =
+          viewAllButtonRef.current ??
+          replyButtonRef.current ??
+          repliesButtonRef.current;
+      } else if (trigger === "reply") {
+        returnTarget = replyButtonRef.current ?? repliesButtonRef.current;
+      }
+
+      returnTarget?.focus();
+    });
   };
 
   const toggleThread = () => {
     if (threadOpen) {
+      threadTriggerRef.current = "comment";
       closeThread();
     } else {
-      setThreadOpen(true);
+      openThread("comment");
     }
   };
+
+  useEffect(() => {
+    if (!threadOpen || !focusThreadRef.current) return undefined;
+
+    const timer = window.setTimeout(() => {
+      threadCloseRef.current?.focus();
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [threadOpen]);
 
   const handleImageError = () => {
     if (originalImage && imageSrc !== originalImage) {
@@ -165,6 +219,32 @@ const Post = ({ post, index = 0 }) => {
     }
   };
 
+  const shareFrame = async () => {
+    if (!postId) return;
+
+    const shareUrl = `${window.location.origin}/u/${encodeURIComponent(
+      username
+    )}#post-${postId}`;
+
+    if (shareTimerRef.current) window.clearTimeout(shareTimerRef.current);
+
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard is unavailable");
+      }
+
+      await navigator.clipboard.writeText(shareUrl);
+      setShareState("copied");
+    } catch {
+      setShareState("error");
+    }
+
+    shareTimerRef.current = window.setTimeout(
+      () => setShareState("idle"),
+      SHARE_STATUS_MS
+    );
+  };
+
   const removePost = async () => {
     if (!postId || deleting) return;
 
@@ -190,291 +270,339 @@ const Post = ({ post, index = 0 }) => {
       aria-label={`Frame by @${username}`}
       style={{ "--post-delay": `${Math.min(index, 4) * 60}ms` }}
     >
-      <header className="post-head">
-        <Link
-          to={`/u/${encodeURIComponent(username)}`}
-          className="post-author"
-        >
-          <Avatar
-            src={getUserAvatar(author)}
-            name={username}
-            className="avatar--post"
-          />
-          <span className="post-author-copy">
-            <span className="post-author-name">@{username}</span>
-            {postedAt && (
-              <time className="post-time" dateTime={post.createdAt} title={fullDate || undefined}>
-                {postedAt}
-              </time>
-            )}
-          </span>
-        </Link>
-
-        {isOwner && <span className="post-owner-tag">Your frame</span>}
-      </header>
-
-      <div className="post-media">
-        {imageSrc && !imageFailed ? (
-          <img
-            src={imageSrc}
-            alt={photoAlt}
-            loading={index < 2 ? "eager" : "lazy"}
-            decoding="async"
-            onError={handleImageError}
-          />
-        ) : (
-          <div
-            className="photo-fallback"
-            role="img"
-            aria-label={`The photograph by @${username} is unavailable`}
+      <div className="post-card">
+        <header className="post-head">
+          <Link
+            to={`/u/${encodeURIComponent(username)}`}
+            className="post-author"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="6" width="18" height="14" rx="1.5" />
-              <circle cx="12" cy="13" r="3.2" />
-              <path d="m8 6 1.4-2h5.2L16 6" />
-            </svg>
-            <span>Photograph unavailable</span>
-          </div>
-        )}
-      </div>
+            <Avatar
+              src={getUserAvatar(author)}
+              name={username}
+              className="avatar--post"
+            />
+            <span className="post-author-copy">
+              <span className="post-author-name">@{username}</span>
+              {postedAt && (
+                <time
+                  className="post-time"
+                  dateTime={post.createdAt}
+                  title={fullDate || undefined}
+                >
+                  {postedAt}
+                </time>
+              )}
+            </span>
+          </Link>
 
-      <div className="post-body">
-        <div className="post-take">
-          <p className="post-kicker">The take</p>
-          {caption ? (
-            <>
-              <h2
+          {isOwner && <span className="post-owner-tag">Your frame</span>}
+        </header>
+
+        <div className="post-media">
+          {imageSrc && !imageFailed ? (
+            <img
+              src={imageSrc}
+              alt={photoAlt}
+              loading={index < 2 ? "eager" : "lazy"}
+              decoding="async"
+              onError={handleImageError}
+            />
+          ) : (
+            <div
+              className="photo-fallback"
+              role="img"
+              aria-label={`The photograph by @${username} is unavailable`}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="6" width="18" height="14" rx="1.5" />
+                <circle cx="12" cy="13" r="3.2" />
+                <path d="m8 6 1.4-2h5.2L16 6" />
+              </svg>
+              <span>Photograph unavailable</span>
+            </div>
+          )}
+        </div>
+
+        <div className="post-body">
+          <div className="post-actions" role="group" aria-label="Frame actions">
+            <button
+              type="button"
+              className={`post-action post-action--like${
+                liked ? " is-liked" : ""
+              }`}
+              aria-pressed={viewer ? liked : undefined}
+              aria-label={
+                viewer
+                  ? liked
+                    ? `Unlike this frame, ${likesCount} likes`
+                    : `Like this frame, ${likesCount} likes`
+                  : "Sign in to like this frame"
+              }
+              aria-busy={liking}
+              onClick={toggleLike}
+            >
+              <span
+                className={`like-glyph${pulse ? " is-pulsing" : ""}`}
+                onAnimationEnd={() => setPulse(false)}
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" />
+                </svg>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              ref={repliesButtonRef}
+              className={`post-action post-action--replies${
+                threadOpen ? " is-open" : ""
+              }`}
+              aria-expanded={threadOpen}
+              aria-controls={threadOpen ? threadId : undefined}
+              aria-label={
+                threadOpen
+                  ? "Hide replies"
+                  : commentsCount > 0
+                    ? `Open ${commentsCount} ${
+                        commentsCount === 1 ? "reply" : "replies"
+                      }`
+                    : "Open the reply thread"
+              }
+              onClick={toggleThread}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              className={`post-action post-action--share${
+                shareState === "copied"
+                  ? " is-copied"
+                  : shareState === "error"
+                    ? " is-error"
+                    : ""
+              }`}
+              aria-label="Copy link to this frame"
+              onClick={shareFrame}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m22 2-7 20-4-9-9-4 20-7Z" />
+                <path d="M22 2 11 13" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="post-meta">
+            <p className="post-likes" aria-live="polite">
+              {likesLabel}
+            </p>
+            <span
+              className={`post-share-status${
+                shareState === "error" ? " is-error" : ""
+              }`}
+              role="status"
+              aria-live="polite"
+            >
+              {shareState === "copied"
+                ? "Link copied"
+                : shareState === "error"
+                  ? "Could not copy the link"
+                  : ""}
+            </span>
+          </div>
+
+          {likeError && (
+            <p className="post-inline-error" role="alert">
+              {likeError}
+            </p>
+          )}
+
+          {caption && (
+            <div className="post-caption">
+              <p
                 id={captionId}
-                className={`post-take-text${
+                className={`post-caption-text${
                   isLongTake && !takeExpanded ? " is-clamped" : ""
                 }`}
               >
-                {caption}
-              </h2>
+                <Link
+                  to={`/u/${encodeURIComponent(username)}`}
+                  className="post-caption-author"
+                >
+                  @{username}
+                </Link>{" "}
+                <span>{caption}</span>
+              </p>
               {isLongTake && (
                 <button
                   type="button"
-                  className="take-toggle"
+                  className="post-caption-toggle"
                   onClick={() => setTakeExpanded((current) => !current)}
                   aria-expanded={takeExpanded}
                   aria-controls={captionId}
                 >
-                  {takeExpanded ? "Show less" : "Read the full take"}
+                  {takeExpanded ? "less" : "more"}
                 </button>
               )}
-            </>
-          ) : (
-            <p className="post-take-empty">
-              This frame was posted without a written take.
-            </p>
+            </div>
           )}
-        </div>
 
-        <div className="post-actions">
-          <button
-            type="button"
-            className={`post-action post-like${liked ? " is-liked" : ""}`}
-            aria-pressed={viewer ? liked : undefined}
-            aria-label={
-              viewer
-                ? liked
-                  ? `Unlike this frame, ${likesCount} likes`
-                  : `Like this frame, ${likesCount} likes`
-                : "Sign in to like this frame"
-            }
-            aria-busy={liking}
-            onClick={toggleLike}
-          >
-            <span
-              className={`like-glyph${pulse ? " is-pulsing" : ""}`}
-              onAnimationEnd={() => setPulse(false)}
-              aria-hidden="true"
+          {!threadOpen && (
+            <section
+              className="post-reply-preview"
+              aria-label="Reply preview"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 8.81 13.64 6.49A2.98 2.98 0 0 1 16.5 5a3.5 3.5 0 0 1 3.5 3.5c0 2.88-1.96 5.62-4.36 7.84A29.24 29.24 0 0 1 12 19.15a29.2 29.2 0 0 1-3.64-2.81C5.96 14.12 4 11.38 4 8.5A3.5 3.5 0 0 1 7.5 5c1.18 0 2.23.58 2.86 1.49L12 8.81Zm-1.44-4.88A4.98 4.98 0 0 0 7.5 3 5.5 5.5 0 0 0 2 8.5c0 7.5 10 12.99 10 12.99s10-5.49 10-12.99A5.5 5.5 0 0 0 16.5 3c-1.13 0-2.18.34-3.06.93-.56.38-1.05.86-1.44 1.41a5.5 5.5 0 0 0-1.44-1.41Z" />
-              </svg>
-            </span>
-            <span>{liked ? "Liked" : "Like"}</span>
-            <span className="post-count">{formatCount(likesCount)}</span>
-          </button>
-
-          <button
-            type="button"
-            ref={repliesButtonRef}
-            className={`post-action post-replies${threadOpen ? " is-open" : ""}`}
-            aria-expanded={threadOpen}
-            aria-controls={threadId}
-            onClick={toggleThread}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 2.2V11.5A7.5 7.5 0 0 1 10.5 4h2A7.5 7.5 0 0 1 20 11.5Z" />
-            </svg>
-            <span>Replies</span>
-            <span className="post-count">{formatCount(commentsCount)}</span>
-          </button>
-        </div>
-
-        {likeError && (
-          <p className="post-inline-error" role="alert">
-            {likeError}
-          </p>
-        )}
-
-        <section
-          id={threadId}
-          className={`post-thread${threadOpen ? " is-open" : ""}`}
-          aria-label={`Replies to @${username}`}
-        >
-          <header className="post-thread-head">
-            <p className="post-thread-label">
-              Thread <span>{formatCount(commentsCount)}</span>
-            </p>
-            {threadOpen && (
-              <button
-                type="button"
-                className="quiet-button post-thread-close"
-                onClick={closeThread}
-              >
-                Close
-              </button>
-            )}
-          </header>
-
-          {threadOpen ? (
-            <CommentThread
-              postId={postId}
-              commentsCount={commentsCount}
-              onCountChange={handleCountChange}
-              onCommentsChange={handleCommentsChange}
-              focusRequest={focusRequest}
-            />
-          ) : (
-            <>
               {previewReplies.length > 0 ? (
-                <ol className="thread-preview">
+                <ul className="post-reply-list">
                   {previewReplies.map((comment) => (
-                    <li className="reply reply--preview" key={comment._id}>
-                      <span className="reply-node" aria-hidden="true">
-                        <Avatar
-                          src={comment.profile_image}
-                          name={comment.user}
-                          className="avatar--reply"
-                        />
-                      </span>
-                      <div className="reply-body">
-                        <div className="reply-meta">
+                    <li className="post-reply" key={comment._id}>
+                      <Avatar
+                        src={comment.profile_image}
+                        name={comment.user}
+                        className="avatar--preview"
+                      />
+                      <div className="post-reply-body">
+                        <p className="post-reply-text">
                           <Link
                             to={`/u/${encodeURIComponent(comment.user)}`}
-                            className="reply-author"
+                            className="post-reply-author"
                           >
                             @{comment.user}
-                          </Link>
-                          {comment.createdAt && (
-                            <time
-                              className="reply-time"
-                              dateTime={comment.createdAt}
-                              title={
-                                formatFullDate(comment.createdAt) || undefined
-                              }
-                            >
-                              {formatRelativeTime(comment.createdAt)}
-                            </time>
-                          )}
-                        </div>
-                        <p className="reply-text">{comment.text}</p>
+                          </Link>{" "}
+                          <span>{comment.text}</span>
+                        </p>
+                        {comment.createdAt && (
+                          <time
+                            className="post-reply-time"
+                            dateTime={comment.createdAt}
+                            title={
+                              formatFullDate(comment.createdAt) || undefined
+                            }
+                          >
+                            {formatRelativeTime(comment.createdAt)}
+                          </time>
+                        )}
                       </div>
                     </li>
                   ))}
-                </ol>
+                </ul>
               ) : (
-                <p className="thread-empty thread-empty--compact">
-                  {commentsCount > 0
-                    ? "Open the thread to read the replies."
-                    : "No replies yet. Start the thread with what you see."}
+                <p className="post-reply-empty">
+                  No replies yet. Start the thread.
                 </p>
               )}
 
-              <div className="thread-preview-foot">
-                {commentsCount > 0 ? (
-                  <>
-                    <button
-                      type="button"
-                      className="thread-open-button"
-                      onClick={() => setThreadOpen(true)}
-                    >
-                      {commentsCount > previewReplies.length
-                        ? `View all ${formatCount(commentsCount)} ${
-                            commentsCount === 1 ? "reply" : "replies"
-                          }`
-                        : "Open the thread"}
-                    </button>
-                    <button
-                      type="button"
-                      className="thread-reply-button"
-                      onClick={openReply}
-                    >
-                      Reply
-                    </button>
-                  </>
-                ) : (
+              <div className="post-reply-actions">
+                {commentsCount > 0 && (
                   <button
                     type="button"
-                    className="thread-reply-button"
-                    onClick={openReply}
+                    ref={viewAllButtonRef}
+                    className="post-reply-open"
+                    onClick={() => openThread("view-all")}
                   >
-                    Write the first reply
+                    View all {formatCount(commentsCount)}{" "}
+                    {commentsCount === 1 ? "reply" : "replies"}
                   </button>
                 )}
+                <button
+                  type="button"
+                  ref={replyButtonRef}
+                  className="post-reply-write"
+                  onClick={openReply}
+                >
+                  Reply
+                </button>
               </div>
-            </>
+            </section>
           )}
-        </section>
 
-        {isOwner && (
-          <div className="post-owner">
-            {confirmingDelete ? (
-              <>
-                <span className="post-owner-confirm">
-                  Delete this frame and its replies?
-                </span>
-                <button
-                  type="button"
-                  className="quiet-button quiet-button--danger"
-                  onClick={removePost}
-                  disabled={deleting}
-                >
-                  {deleting ? "Deleting..." : "Delete frame"}
-                </button>
-                <button
-                  type="button"
-                  className="quiet-button"
-                  onClick={() => {
-                    setConfirmingDelete(false);
-                    setDeleteError("");
-                  }}
-                  disabled={deleting}
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
+          <div className="post-foot">
+            <time
+              className="post-date"
+              dateTime={post.createdAt}
+              title={fullDate || undefined}
+            >
+              {fullDate || postedAt}
+            </time>
+
+            {isOwner && !confirmingDelete && (
               <button
                 type="button"
-                className="quiet-button"
+                className="quiet-button post-delete"
                 onClick={() => setConfirmingDelete(true)}
               >
                 Delete frame
               </button>
             )}
-
-            {deleteError && (
-              <span className="post-inline-error" role="alert">
-                {deleteError}
-              </span>
-            )}
           </div>
-        )}
+
+          {isOwner && confirmingDelete && (
+            <div className="post-owner">
+              <span className="post-owner-confirm">
+                Delete this frame and its replies?
+              </span>
+              <button
+                type="button"
+                className="quiet-button quiet-button--danger"
+                onClick={removePost}
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Delete frame"}
+              </button>
+              <button
+                type="button"
+                className="quiet-button"
+                onClick={() => {
+                  setConfirmingDelete(false);
+                  setDeleteError("");
+                }}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+
+              {deleteError && (
+                <span className="post-inline-error" role="alert">
+                  {deleteError}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
+      {threadOpen && (
+        <section
+          id={threadId}
+          className="post-thread is-open"
+          aria-label={`Replies to @${username}`}
+        >
+          <header className="post-thread-head">
+            <p className="post-thread-label">
+              Replies <span>{formatCount(commentsCount)}</span>
+            </p>
+            <button
+              type="button"
+              ref={threadCloseRef}
+              className="quiet-button post-thread-close"
+              onClick={closeThread}
+            >
+              Close
+            </button>
+          </header>
+
+          <CommentThread
+            postId={postId}
+            commentsCount={commentsCount}
+            onCountChange={handleCountChange}
+            onCommentsChange={handleCommentsChange}
+            focusRequest={focusRequest}
+          />
+        </section>
+      )}
     </article>
   );
 };
