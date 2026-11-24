@@ -1,6 +1,6 @@
 const express = require("express");
 const identifyUser = require("../middleware/auth.middleware");
-const { identifyUserOptional } = require("../middleware/auth.middleware");
+const { identifyUserReadOnly } = require("../middleware/auth.middleware");
 const { postLimiter } = require("../middleware/rateLimit.middleware");
 const {
     createPostController,
@@ -48,11 +48,11 @@ const postRouter = express.Router();
 
 postRouter.use(postLimiter);
 
-postRouter.get("/feed", identifyUserOptional, getFeedController);
+postRouter.get("/feed", identifyUserReadOnly, getFeedController);
 postRouter.get("/", identifyUser, getPostController);
 postRouter.post("/", identifyUser, upload.single("image"), createPostController);
 
-postRouter.get("/:postId/comments", identifyUserOptional, getCommentsController);
+postRouter.get("/:postId/comments", identifyUserReadOnly, getCommentsController);
 postRouter.post("/:postId/comments", identifyUser, createCommentController);
 postRouter.delete(
     "/:postId/comments/:commentId",

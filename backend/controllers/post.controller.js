@@ -7,10 +7,9 @@ const userModel = require("../models/user.model");
 const followModel = require("../models/follow.model");
 const {
     parseLimit,
-    buildPostPipeline,
     serializePost,
-    serializePosts,
 } = require("../utils/postPipeline");
+const { fetchPostsPage } = require("../utils/postFeed");
 const { resolvePostCursor } = require("../utils/cursor");
 
 const ImageKit = require("@imagekit/nodejs/index.js");
@@ -217,18 +216,14 @@ const getFeedController = async (req, res) => {
         match = { user: { $in: authorIds } };
     }
 
-    const rows = await postModel.aggregate(
-        buildPostPipeline({
-            match,
-            cursorId,
-            cursorPost,
-            limit,
-            viewerUsername,
-            includeRecentComments: true,
-        })
-    );
-
-    const { posts, nextCursor } = serializePosts(rows, limit);
+    const { posts, nextCursor } = await fetchPostsPage({
+        match,
+        cursorId,
+        cursorPost,
+        limit,
+        viewerUsername,
+        includeRecentComments: true,
+    });
 
     return res.status(200).json({
         message: "Feed fetched successfully.",

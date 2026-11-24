@@ -65,8 +65,7 @@ const identifyUser = async (req, res, next) => {
  * Public pages (a photographer's portfolio) should render for signed-out
  * visitors while still knowing who is viewing when a cookie is present.
  */
-const identifyUserOptional = async (req, res, next) => {
-    const token = readToken(req);
+const identifyUserOptional = async (req, res, next) => {    const token = readToken(req);
 
     if (!token) {
         req.user = null;
@@ -104,6 +103,18 @@ const identifyUserOptional = async (req, res, next) => {
     return next();
 };
 
+/**
+ * Read-only public routes only need to know who is asking so likes and follow
+ * state render correctly. Skipping the session database checks removes two
+ * queries from every Explore request.
+ */
+const identifyUserReadOnly = (req, res, next) => {
+    const token = readToken(req);
+    req.user = token ? verifyToken(token) : null;
+    return next();
+};
+
 module.exports = identifyUser;
 module.exports.identifyUser = identifyUser;
 module.exports.identifyUserOptional = identifyUserOptional;
+module.exports.identifyUserReadOnly = identifyUserReadOnly;

@@ -3,9 +3,8 @@ const userModel = require("../models/user.model");
 const postModel = require("../models/post.model");
 const {
     parseLimit,
-    buildPostPipeline,
-    serializePosts,
 } = require("../utils/postPipeline");
+const { fetchPostsPage } = require("../utils/postFeed");
 const { resolvePostCursor } = require("../utils/cursor");
 
 const BIO_LIMIT = 160;
@@ -107,7 +106,7 @@ const getProfileController = async (req, res) => {
 
     const viewerUsername = req.user?.username ?? null;
 
-    const [postsCount, followersCount, followingCount, isFollowing, rows] =
+    const [postsCount, followersCount, followingCount, isFollowing, page] =
         await Promise.all([
             postModel.countDocuments({ user: user._id }),
             followModel.countDocuments({
@@ -125,18 +124,16 @@ const getProfileController = async (req, res) => {
                       status: { $ne: "rejected" },
                   })
                 : null,
-            postModel.aggregate(
-                buildPostPipeline({
-                    match: { user: user._id },
-                    cursorId,
-                    cursorPost,
-                    limit,
-                    viewerUsername,
-                })
-            ),
+            fetchPostsPage({
+                match: { user: user._id },
+                cursorId,
+                cursorPost,
+                limit,
+                viewerUsername,
+            }),
         ]);
 
-    const { posts, nextCursor } = serializePosts(rows, limit);
+    const { posts, nextCursor } = page;
 
     return res.status(200).json({
         message: "Profile fetched successfully.",

@@ -249,6 +249,7 @@ module.exports = {
     MAX_LIMIT,
     parseLimit,
     buildPostPipeline,
+    buildCursorMatch,
     serializePost,
     serializePosts,
 };

@@ -7,7 +7,7 @@ const {
 } = require("../controllers/user.controller");
 const identifyUser = require("../middleware/auth.middleware");
 const {
-    identifyUserOptional,
+    identifyUserReadOnly,
 } = require("../middleware/auth.middleware");
 
 const userRouter = express.Router();
@@ -17,7 +17,7 @@ const userRouter = express.Router();
  * @description Public profile and paginated portfolio
  * @access Public (isFollowing is set when a cookie is present)
  */
-userRouter.get("/:username", identifyUserOptional, getProfileController);
+userRouter.get("/:username", identifyUserReadOnly, getProfileController);
 
 userRouter.patch("/me", identifyUser, updateMeController);
 
