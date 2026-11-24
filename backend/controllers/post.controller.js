@@ -10,6 +10,7 @@ const {
     serializePost,
 } = require("../utils/postPipeline");
 const { fetchPostsPage } = require("../utils/postFeed");
+const { read: readFeedCache, write: writeFeedCache } = require("../utils/feedCache");
 const { resolvePostCursor } = require("../utils/cursor");
 
 const ImageKit = require("@imagekit/nodejs/index.js");
@@ -216,6 +217,22 @@ const getFeedController = async (req, res) => {
         match = { user: { $in: authorIds } };
     }
 
+    const cacheable = scope === "all" && !viewerUsername;
+    const cacheCursor = typeof req.query.cursor === "string" ? req.query.cursor : "";
+
+    if (cacheable) {
+        const cached = readFeedCache(scope, cacheCursor, limit);
+        if (cached) {
+            res.set("Cache-Control", "public, max-age=10, stale-while-revalidate=20");
+            return res.status(200).json({
+                message: "Feed fetched successfully.",
+                posts: cached.posts,
+                nextCursor: cached.nextCursor,
+                scope,
+            });
+        }
+    }
+
     const { posts, nextCursor } = await fetchPostsPage({
         match,
         cursorId,
@@ -224,6 +241,11 @@ const getFeedController = async (req, res) => {
         viewerUsername,
         includeRecentComments: true,
     });
+
+    if (cacheable) {
+        writeFeedCache(scope, cacheCursor, limit, { posts, nextCursor });
+        res.set("Cache-Control", "public, max-age=10, stale-while-revalidate=20");
+    }
 
     return res.status(200).json({
         message: "Feed fetched successfully.",
