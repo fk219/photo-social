@@ -316,6 +316,34 @@
   padding: 1.15rem 1.2rem 1rem;
 }
 
+/* Side-by-side frame and thread on wide screens. The image stays the hero,
+   while the take and first replies stay visible without scrolling. */
+@media (min-width: 960px) {
+  .post {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+    grid-template-areas:
+      "head head"
+      "media body";
+  }
+
+  .post-head {
+    grid-area: head;
+  }
+
+  .post-media {
+    grid-area: media;
+    height: 100%;
+    min-height: 380px;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+
+  .post-body {
+    grid-area: body;
+  }
+}
+
 .post-take {
   min-width: 0;
 }
