@@ -3,7 +3,7 @@
 A full social photo app: feed, stories, direct messages, notifications, search, saved posts, threaded comments, follows and profiles.
 
 **Live app:** https://photosocial.furqankhan.dev
-**API:** https://insta-clone-backend-n518.onrender.com
+**API:** https://photo-social-api.onrender.com
 
 **Demo account:** `demo_photo` / `DemoPhotoSocial2026!` (shared; demo data is clearly labeled)
 

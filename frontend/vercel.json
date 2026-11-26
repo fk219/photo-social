@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://insta-clone-backend-n518.onrender.com/api/:path*"
+      "destination": "https://photo-social-api.onrender.com/api/:path*"
     },
     { "source": "/((?!_vercel/).*)", "destination": "/index.html" }
   ]

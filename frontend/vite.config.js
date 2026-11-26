@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://insta-clone-backend-n518.onrender.com',
+        target: 'https://photo-social-api.onrender.com',
         changeOrigin: true,
       },
     },
