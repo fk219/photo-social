@@ -26,7 +26,7 @@ const EmptyResult = ({ tab, query, onClearQuery }) => {
     tags: "No tags found",
   };
   const descriptions = {
-    all: `Nothing on Mosaic matched "${query}". Try a different name, keyword or tag.`,
+    all: `Nothing on PhotoSocial matched "${query}". Try a different name, keyword or tag.`,
     people: `No accounts matched "${query}". Try a different name or username.`,
     posts: `No posts matched "${query}". Try a different keyword or tag.`,
     tags: `No tags matched "${query}". Try a shorter tag or a different topic.`,

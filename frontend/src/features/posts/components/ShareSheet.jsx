@@ -88,8 +88,8 @@ const ShareSheet = ({ post, onClose }) => {
 
     try {
       await navigator.share({
-        title: "Mosaic post",
-        text: post?.caption || "A post on Mosaic",
+        title: "PhotoSocial post",
+        text: post?.caption || "A post on PhotoSocial",
         url: shareUrl,
       });
       setCopyState("shared");

@@ -88,7 +88,7 @@ const EditProfileModal = ({ profile, onClose, onSaved }) => {
   return (
     <AppModal
       title="Edit profile"
-      description="Change how people see you across Mosaic."
+      description="Change how people see you across PhotoSocial."
       onClose={onClose}
       size="sm"
     >

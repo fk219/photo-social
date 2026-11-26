@@ -58,7 +58,7 @@ const NewMessageDialog = ({ onClose, onStarted }) => {
           if (!active) return;
 
           setSearchError(
-            getErrorMessage(err, "Mosaic could not search for people.")
+            getErrorMessage(err, "PhotoSocial could not search for people.")
           );
           setStatus("error");
         });
@@ -137,7 +137,7 @@ const NewMessageDialog = ({ onClose, onStarted }) => {
       <div className="new-message-results" aria-live="polite">
         {status === "idle" && (
           <p className="new-message-note">
-            Type a name or username to find someone on Mosaic.
+            Type a name or username to find someone on PhotoSocial.
           </p>
         )}
 

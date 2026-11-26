@@ -379,7 +379,7 @@ const uploadAvatarController = async (req, res) => {
         uploadedFile = await uploadImageBuffer(
             req.file.buffer,
             req.file.mimetype,
-            { folder: "insta-clone/avatars", prefix: "avatar" }
+            { folder: "photosocial/avatars", prefix: "avatar" }
         );
     } catch (error) {
         console.error("ImageKit avatar upload failed:", error?.message || error);

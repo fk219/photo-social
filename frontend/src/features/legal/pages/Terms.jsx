@@ -3,14 +3,14 @@ import LegalLayout from "../components/LegalLayout";
 
 const Terms = () => (
   <LegalLayout
-    eyebrow="Mosaic"
+    eyebrow="PhotoSocial"
     title="Terms of use"
-    intro="Mosaic is an early, small photo sharing service. These terms cover the basics of using it."
+    intro="PhotoSocial is an early, small photo sharing service. These terms cover the basics of using it."
   >
     <section>
       <h2>Beta service</h2>
       <p>
-        Mosaic is in beta. Features may change, break, or be removed, and the
+        PhotoSocial is in beta. Features may change, break, or be removed, and the
         service may be paused or discontinued. Keep your own copies of any photo
         you care about. We do not promise that content will be preserved.
       </p>
@@ -28,7 +28,7 @@ const Terms = () => (
 
     <section>
       <h2>Acceptable use</h2>
-      <p>Do not use Mosaic to:</p>
+      <p>Do not use PhotoSocial to:</p>
       <ul>
         <li>
           upload content that is illegal, hateful, harassing, sexually
@@ -56,10 +56,10 @@ const Terms = () => (
       <h2>Your photos</h2>
       <p>
         You keep ownership of the photos you upload. By sharing a post or story,
-        you give Mosaic permission to store, resize, and display that image and
+        you give PhotoSocial permission to store, resize, and display that image and
         the caption attached to it so the service can show them in the feed, on
         your public profile, in stories, and in related views. Stories expire
-        after 24 hours. Deleting a post removes it from Mosaic, but the image
+        after 24 hours. Deleting a post removes it from PhotoSocial, but the image
         file may remain at its ImageKit URL. The deletion process is described
         in the <Link to="/privacy">Privacy policy</Link>. Email us if you want
         the file removed.
@@ -83,7 +83,7 @@ const Terms = () => (
     <section>
       <h2>Termination</h2>
       <p>
-        You can stop using Mosaic at any time and delete your account from
+        You can stop using PhotoSocial at any time and delete your account from
         Settings. We may suspend or remove an account or content if it breaks
         these terms, creates risk for other people, or if we need to protect the
         service.
@@ -93,9 +93,9 @@ const Terms = () => (
     <section>
       <h2>No warranty</h2>
       <p>
-        Mosaic is provided as is and as available, without warranties of any
+        PhotoSocial is provided as is and as available, without warranties of any
         kind. We do not promise uninterrupted access, error-free operation, or
-        that any content will be kept. To the extent the law allows, Mosaic is
+        that any content will be kept. To the extent the law allows, PhotoSocial is
         not liable for lost data, lost access, or indirect or incidental
         damages.
       </p>

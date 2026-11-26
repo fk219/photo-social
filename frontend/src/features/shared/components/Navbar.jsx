@@ -162,7 +162,7 @@ const SearchForm = () => {
   return (
     <form className="topbar-search" role="search" onSubmit={submit}>
       <label htmlFor="topbar-search-input" className="sr-only">
-        Search Mosaic
+        Search PhotoSocial
       </label>
       <NavIcon name="search" />
       <input
@@ -242,8 +242,8 @@ const Navbar = () => {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <Link to="/" className="brand-wordmark" aria-label="Mosaic home">
-            Mosaic
+          <Link to="/" className="brand-wordmark" aria-label="PhotoSocial home">
+            PhotoSocial
           </Link>
 
           <nav className="topbar-nav" aria-label="Primary">
@@ -294,8 +294,8 @@ const Navbar = () => {
       </header>
 
       <header className="mobile-bar">
-        <Link to="/" className="brand-wordmark" aria-label="Mosaic home">
-          Mosaic
+        <Link to="/" className="brand-wordmark" aria-label="PhotoSocial home">
+          PhotoSocial
         </Link>
 
         <div className="mobile-bar-actions">

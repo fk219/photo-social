@@ -1,11 +1,11 @@
-# Mosaic
+# PhotoSocial
 
-A full social photo app built on the Insta Clone codebase: feed, stories, direct messages, notifications, search, saved posts, threaded comments, follows and profiles.
+A full social photo app built on the PhotoSocial codebase: feed, stories, direct messages, notifications, search, saved posts, threaded comments, follows and profiles.
 
-**Live app:** https://insta-clone.furqankhan.dev
+**Live app:** https://photosocial.furqankhan.dev
 **API:** https://insta-clone-backend-n518.onrender.com
 
-**Demo account:** `demo_mosaic` / `DemoMosaic2026!` (shared; demo data is clearly labeled)
+**Demo account:** `demo_photo` / `DemoPhotoSocial2026!` (shared; demo data is clearly labeled)
 
 ![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
@@ -15,15 +15,15 @@ A full social photo app built on the Insta Clone codebase: feed, stories, direct
 ![Render](https://img.shields.io/badge/API-Render-46E3B7)
 ![Vercel](https://img.shields.io/badge/Web-Vercel-000000?logo=vercel&logoColor=white)
 
-![Mosaic Following feed](docs/preview.png)
-![Mosaic direct messages](docs/messages.png)
-![Mosaic profile grid](docs/profile.png)
+![PhotoSocial Following feed](docs/preview.png)
+![PhotoSocial direct messages](docs/messages.png)
+![PhotoSocial profile grid](docs/profile.png)
 
 ## What it is
 
-Mosaic is an Instagram-style social app with the full social loop: share photos and stories, follow people, talk in comment threads, send direct messages, get notifications, search for people and posts, and save what you want to come back to.
+PhotoSocial is an Instagram-style social app with the full social loop: share photos and stories, follow people, talk in comment threads, send direct messages, get notifications, search for people and posts, and save what you want to come back to.
 
-The product is Mosaic. The folder, deployment domain and repository name remain `Insta Clone`, `insta-clone.furqankhan.dev` and `Insta-Clone` so existing links keep working.
+The product, repository and deployment domain are now PhotoSocial.
 
 ## Product capabilities
 
@@ -177,6 +177,7 @@ VITE_API_URL=http://localhost:3006
 | Key | Required | Purpose |
 |---|---|---|
 | `PORT` | No | API port (defaults to `3006`) |
+| `NODE_ENV` | No | `development` or `production`; `production` makes auth cookies `Secure` |
 | `MONGO_URI` | Yes | MongoDB connection string |
 | `JWT_SECRET` | Yes | Signs auth cookies |
 | `IMAGEKIT_PRIVATE_KEY` | Yes | Server-side ImageKit uploads |
@@ -185,7 +186,7 @@ VITE_API_URL=http://localhost:3006
 
 ## API
 
-All routes are prefixed with `/api`. Post writes, comments, messages, notifications, saves, stories, follows and account settings require the auth cookie. Feed, post detail, profile and comment reads also work for signed-out visitors; `scope=following` and social features still require a session.
+A public `GET /health` endpoint reports API and database readiness. All product routes are prefixed with `/api`. Post writes, comments, messages, notifications, saves, stories, follows and account settings require the auth cookie. Feed, post detail, profile and comment reads also work for signed-out visitors; `scope=following` and social features still require a session.
 
 ### Auth and account
 
@@ -295,11 +296,18 @@ Feed and post responses include `isSaved`, `isLiked`, recent top-level comments 
 ## Verification
 
 ```bash
-# Backend syntax
-find . -name "*.js" -not -path "./node_modules/*" -exec node --check {} \;
+# Backend API tests (in-memory MongoDB, no Atlas access)
+cd backend
+npm test                     # 7 tests: health, feed, auth, profile, search
 
 # Frontend
 cd frontend
 npm run lint
 npm run build
 ```
+
+The API suite covers health, the guest Explore feed, authentication guards, registration and duplicate handling, login, public profiles, post-write authorization, and public search. CI runs the same suite on every push.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

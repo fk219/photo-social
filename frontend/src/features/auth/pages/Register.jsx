@@ -82,8 +82,8 @@ const Register = () => {
   return (
     <main className="auth-page" id="main-content">
       <div className="auth-shell">
-        <Link to="/" className="auth-brand" aria-label="Mosaic home">
-          Mosaic
+        <Link to="/" className="auth-brand" aria-label="PhotoSocial home">
+          PhotoSocial
         </Link>
 
         <section className="auth-card" aria-labelledby="register-title">

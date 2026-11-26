@@ -1,24 +1,25 @@
-// Mosaic light theme tokens.
-$bg: #fafafa;
-$surface: #ffffff;
-$surface-soft: #f5f5f5;
-$surface-hover: #efefef;
+// PhotoSocial theme tokens. Values live in CSS variables so the app can switch
+// between the familiar light shell and an Instagram-style dark shell.
+$bg: var(--mosaic-bg, #fafafa);
+$surface: var(--mosaic-surface, #ffffff);
+$surface-soft: var(--mosaic-surface-soft, #f5f5f5);
+$surface-hover: var(--mosaic-surface-hover, #efefef);
 
-$line: #dbdbdb;
-$line-soft: #efefef;
+$line: var(--mosaic-line, #dbdbdb);
+$line-soft: var(--mosaic-line-soft, #efefef);
 
-$ink: #262626;
-$ink-soft: #363636;
-$ink-strong: #000000;
-$muted: #737373;
-$muted-dark: #555555;
+$ink: var(--mosaic-ink, #262626);
+$ink-soft: var(--mosaic-ink-soft, #363636);
+$ink-strong: var(--mosaic-ink-strong, #000000);
+$muted: var(--mosaic-muted, #737373);
+$muted-dark: var(--mosaic-muted-dark, #555555);
 
-$blue: #0095f6;
-$blue-hover: #0086dd;
-$blue-ink: #00376b;
-$red: #ed4956;
-$red-ink: #c72b3a;
-$red-wash: #fff4f5;
+$blue: var(--mosaic-blue, #0095f6);
+$blue-hover: var(--mosaic-blue-hover, #0086dd);
+$blue-ink: var(--mosaic-blue-ink, #00376b);
+$red: var(--mosaic-red, #ed4956);
+$red-ink: var(--mosaic-red-ink, #c72b3a);
+$red-wash: var(--mosaic-red-wash, #fff4f5);
 
 $font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
   Arial, sans-serif;

@@ -154,7 +154,7 @@ const createStoryController = async (req, res) => {
         uploadedFile = await uploadImageBuffer(
             req.file.buffer,
             req.file.mimetype,
-            { folder: "insta-clone/stories", prefix: "story" }
+            { folder: "photosocial/stories", prefix: "story" }
         );
     } catch (error) {
         console.error("ImageKit story upload failed:", error?.message || error);

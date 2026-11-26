@@ -56,7 +56,7 @@ const ReportDialog = ({
       title={sent ? "Report sent" : `Report @${username}`}
       description={
         sent
-          ? "Thanks. The Mosaic team will review this report."
+          ? "Thanks. The PhotoSocial team will review this report."
           : "Reports are private. The account will not be told who reported it."
       }
       onClose={onClose}

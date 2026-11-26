@@ -21,7 +21,7 @@ const accountLimiter = createLimiter({
 
 const postLimiter = createLimiter({
     max: 30,
-    message: "Too many Mosaic requests. Try again in a minute.",
+    message: "Too many PhotoSocial requests. Try again in a minute.",
 });
 
 const socialLimiter = createLimiter({

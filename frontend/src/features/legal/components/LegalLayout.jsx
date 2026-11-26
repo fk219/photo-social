@@ -11,7 +11,7 @@ const LegalLayout = ({ eyebrow, title, intro, children }) => {
     <main className="legal-page" id="main-content">
       <div className="page-shell page-shell--legal">
         <Link to="/" className="legal-back">
-          Back to Mosaic
+          Back to PhotoSocial
         </Link>
 
         <article className="legal-card">
@@ -23,8 +23,8 @@ const LegalLayout = ({ eyebrow, title, intro, children }) => {
           <div className="legal-body">{children}</div>
 
           <footer className="legal-footer">
-            <span>Mosaic</span>
-            <nav aria-label="Mosaic">
+            <span>PhotoSocial</span>
+            <nav aria-label="PhotoSocial">
               <Link to="/explore">Explore</Link>
               <Link to="/privacy">Privacy</Link>
               <Link to="/terms">Terms</Link>

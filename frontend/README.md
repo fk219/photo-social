@@ -1,6 +1,6 @@
-# Mosaic frontend
+# PhotoSocial frontend
 
-React and Vite client for Mosaic, a light photo sharing and messaging app. The interface uses a small Sass token set, white surfaces, hairline borders, a single blue action accent and a bold Mosaic wordmark.
+React and Vite client for PhotoSocial, a light photo sharing and messaging app. The interface uses a small Sass token set, white surfaces, hairline borders, a single blue action accent and a bold PhotoSocial wordmark.
 
 ## Scripts
 

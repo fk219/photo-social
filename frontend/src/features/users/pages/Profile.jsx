@@ -475,8 +475,8 @@ const Profile = () => {
         </div>
 
         <footer className="profile-footer">
-          <p>Mosaic</p>
-          <nav aria-label="Mosaic">
+          <p>PhotoSocial</p>
+          <nav aria-label="PhotoSocial">
             <Link to="/explore">Explore</Link>
             <Link to="/privacy">Privacy</Link>
             <Link to="/terms">Terms</Link>

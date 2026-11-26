@@ -110,7 +110,7 @@ const PostDetail = () => {
             <h1>This post is not available</h1>
             <p>
               It may have been deleted, or the link may be incomplete. Explore
-              Mosaic to find something else.
+              PhotoSocial to find something else.
             </p>
             <div className="post-detail-state-actions">
               <Link to="/explore" className="button primary-button">

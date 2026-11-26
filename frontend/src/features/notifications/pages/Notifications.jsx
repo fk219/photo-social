@@ -278,7 +278,7 @@ const Notifications = () => {
               here as they happen.
             </p>
             <Link to="/explore" className="button secondary-button">
-              Explore Mosaic
+              Explore PhotoSocial
             </Link>
           </section>
         ) : (

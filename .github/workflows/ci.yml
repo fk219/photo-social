@@ -19,6 +19,13 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
+      - name: Run API tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ci-test-secret-32-characters-minimum
+          IMAGEKIT_PRIVATE_KEY: ci-test-imagekit-key
+          MONGOMS_STARTUP_TIMEOUT: "120000"
       - name: Syntax check
         run: find . -path ./node_modules -prune -o -name "*.js" -print0 | xargs -0 -n1 node --check
 

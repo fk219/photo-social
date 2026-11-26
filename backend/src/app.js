@@ -3,6 +3,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
+const mongoose = require("mongoose");
 
 const authRouter = require("../routes/auth.route");
 const postRouter = require("../routes/post.route");
@@ -23,7 +24,7 @@ const allowedOrigins = (
     process.env.CORS_ORIGINS ||
     [
         "http://localhost:5173",
-        "https://insta-clone.furqankhan.dev",
+        "https://photosocial.furqankhan.dev",
     ].join(",")
 )
     .split(",")
@@ -55,6 +56,15 @@ app.use((req, res, next) => {
 
 app.get("/", (req, res) => {
     res.send("All API's are working!");
+});
+
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        ok: true,
+        service: "mosaic-api",
+        database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+        uptimeSeconds: Math.round(process.uptime())
+    });
 });
 
 app.use("/api/auth", authRouter);

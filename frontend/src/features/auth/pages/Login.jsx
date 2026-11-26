@@ -5,8 +5,8 @@ import { useAuth } from "../hooks/useAuth";
 import { getErrorMessage } from "../../shared/utils/error";
 
 const DEMO = {
-  username: "demo_mosaic",
-  password: "DemoMosaic2026!",
+  username: "demo_photo",
+  password: "DemoPhotoSocial2026!",
 };
 
 const Login = () => {
@@ -68,8 +68,8 @@ const Login = () => {
   return (
     <main className="auth-page" id="main-content">
       <div className="auth-shell">
-        <Link to="/" className="auth-brand" aria-label="Mosaic home">
-          Mosaic
+        <Link to="/" className="auth-brand" aria-label="PhotoSocial home">
+          PhotoSocial
         </Link>
 
         <section className="auth-card" aria-labelledby="login-title">
@@ -183,7 +183,7 @@ const Login = () => {
         </section>
 
         <p className="auth-switch">
-          New to Mosaic?{" "}
+          New to PhotoSocial?{" "}
           <Link to="/register" state={location.state}>
             Create an account
           </Link>

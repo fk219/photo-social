@@ -92,7 +92,7 @@ const parseMentions = (text) => {
 
     while ((match = pattern.exec(text)) !== null) {
         // Do not treat the punctuation after a mention as part of the name:
-        // "@demo_mosaic." should notify demo_mosaic.
+        // "@demo_photo." should notify demo_photo.
         const username = match[1].replace(/[._-]+$/, "");
 
         if (username) mentions.add(username);

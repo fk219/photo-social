@@ -79,7 +79,7 @@ const Feed = ({ scope = "explore" }) => {
       return (
         <main className="route-loading" id="main-content" role="status">
           <span className="spinner" aria-hidden="true" />
-          <span>Opening Mosaic...</span>
+          <span>Opening PhotoSocial...</span>
         </main>
       );
     }
@@ -171,7 +171,7 @@ const Feed = ({ scope = "explore" }) => {
                 ? "Posts from the accounts you follow will appear here. Find people to follow in Explore."
                 : user
                   ? "When someone shares a photo, it will show up here."
-                  : "Mosaic is waiting for its first post. Create an account to share one."}
+                  : "PhotoSocial is waiting for its first post. Create an account to share one."}
             </p>
             <div className="state-card-actions">
               {followingScope ? (

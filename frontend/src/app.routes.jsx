@@ -22,7 +22,7 @@ const Settings = lazy(() => import("./features/settings/pages/Settings"));
 const RouteFallback = () => (
   <main className="route-loading" role="status">
     <span className="spinner" aria-hidden="true" />
-    <span>Opening Mosaic...</span>
+    <span>Opening PhotoSocial...</span>
   </main>
 );
 

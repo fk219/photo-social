@@ -272,7 +272,7 @@ const Settings = () => {
         replace: true,
         state: {
           notice:
-            "Your account and Mosaic records were deleted. ImageKit image files may remain. You have been signed out.",
+            "Your account and PhotoSocial records were deleted. ImageKit image files may remain. You have been signed out.",
         },
       });
     } catch (error) {
@@ -367,7 +367,7 @@ const Settings = () => {
               <p>
                 The shared demo account uses a generated password to stay
                 available to every visitor, so its password cannot be changed
-                here. Sign in with the demo credentials to explore Mosaic.
+                here. Sign in with the demo credentials to explore PhotoSocial.
               </p>
             </div>
           ) : (
@@ -637,7 +637,7 @@ const Settings = () => {
               >
                 <p>
                   Deleting your account removes your profile, posts, comments,
-                  likes and follow relationships from Mosaic. Your sessions end
+                  likes and follow relationships from PhotoSocial. Your sessions end
                   immediately. This cannot be undone.
                 </p>
                 <p>
@@ -750,8 +750,8 @@ const Settings = () => {
         </section>
 
         <footer className="settings-footer">
-          <p>Mosaic</p>
-          <nav aria-label="Mosaic">
+          <p>PhotoSocial</p>
+          <nav aria-label="PhotoSocial">
             <Link to="/explore">Explore</Link>
             <Link to="/privacy">Privacy</Link>
             <Link to="/terms">Terms</Link>

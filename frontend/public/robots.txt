@@ -5,4 +5,4 @@ Disallow: /notifications
 Disallow: /saved
 Disallow: /settings
 
-Sitemap: https://insta-clone.furqankhan.dev/sitemap.xml
+Sitemap: https://photosocial.furqankhan.dev/sitemap.xml

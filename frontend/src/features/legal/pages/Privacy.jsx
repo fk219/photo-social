@@ -2,9 +2,9 @@ import LegalLayout from "../components/LegalLayout";
 
 const Privacy = () => (
   <LegalLayout
-    eyebrow="Mosaic"
+    eyebrow="PhotoSocial"
     title="Privacy"
-    intro="Mosaic keeps a small record of the people, photos and conversations on it. This page explains what is stored, where it goes, and how to export or remove it."
+    intro="PhotoSocial keeps a small record of the people, photos and conversations on it. This page explains what is stored, where it goes, and how to export or remove it."
   >
     <section>
       <h2>Account details</h2>
@@ -21,7 +21,7 @@ const Privacy = () => (
       <p>
         Each post stores a reference to the image file, its ImageKit URLs (the
         original and the generated thumbnails), an optional caption, and a
-        timestamp. Image files themselves are stored in ImageKit. Mosaic keeps
+        timestamp. Image files themselves are stored in ImageKit. PhotoSocial keeps
         the ImageKit URL in MongoDB and asks ImageKit to serve resized versions
         for the feed and the profile grid.
       </p>
@@ -53,7 +53,7 @@ const Privacy = () => (
         Direct messages store the conversation participants, the sender, the
         message text or shared post, timestamps, and which participants have
         read each message. Messages are visible only to the people in that
-        conversation. Mosaic does not scan message text for advertising.
+        conversation. PhotoSocial does not scan message text for advertising.
       </p>
       <p>
         Notifications store the recipient, the member who triggered them, the
@@ -87,7 +87,7 @@ const Privacy = () => (
 
     <section>
       <h2>Third-party processors</h2>
-      <p>Mosaic relies on these providers to run:</p>
+      <p>PhotoSocial relies on these providers to run:</p>
       <ul>
         <li>
           <strong>Vercel</strong> serves the frontend and runs Vercel Analytics.
@@ -108,7 +108,7 @@ const Privacy = () => (
       </ul>
       <p>
         Each provider handles data under its own terms and privacy policy.
-        Mosaic does not control their retention periods, and these providers
+        PhotoSocial does not control their retention periods, and these providers
         may process data outside your country.
       </p>
     </section>
@@ -125,7 +125,7 @@ const Privacy = () => (
       <p>
         Logout blacklist entries expire within 24 hours. Provider logs and
         backups follow each provider&rsquo;s own retention periods, and copies
-        of deleted records may remain there for a limited time. Mosaic does not
+        of deleted records may remain there for a limited time. PhotoSocial does not
         keep separate analytics profiles.
       </p>
     </section>

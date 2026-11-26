@@ -75,7 +75,7 @@ const createPostController = async (req, res) => {
         uploadedFile = await uploadImageBuffer(
             req.file.buffer,
             req.file.mimetype,
-            { folder: "insta-clone", prefix: "post" }
+            { folder: "photosocial", prefix: "post" }
         );
     } catch (error) {
         console.error("ImageKit upload failed:", error?.message || error);

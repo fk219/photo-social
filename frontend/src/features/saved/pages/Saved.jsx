@@ -246,7 +246,7 @@ const Saved = () => {
             <h2 id="saved-empty-title">No saved posts yet</h2>
             <p>
               When you save a post, it will be waiting here for you. Explore
-              Mosaic to find something worth keeping.
+              PhotoSocial to find something worth keeping.
             </p>
             <Link to="/explore" className="button primary-button">
               Explore posts

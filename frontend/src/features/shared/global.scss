@@ -1,6 +1,49 @@
 @use "./tokens" as *;
 @use "./button.scss";
 
+:root,
+html[data-theme="light"] {
+  --mosaic-bg: #fafafa;
+  --mosaic-surface: #ffffff;
+  --mosaic-surface-soft: #f5f5f5;
+  --mosaic-surface-hover: #efefef;
+  --mosaic-line: #dbdbdb;
+  --mosaic-line-soft: #efefef;
+  --mosaic-ink: #262626;
+  --mosaic-ink-soft: #363636;
+  --mosaic-ink-strong: #000000;
+  --mosaic-muted: #737373;
+  --mosaic-muted-dark: #555555;
+  --mosaic-blue: #0095f6;
+  --mosaic-blue-hover: #0086dd;
+  --mosaic-blue-ink: #00376b;
+  --mosaic-red: #ed4956;
+  --mosaic-red-ink: #c72b3a;
+  --mosaic-red-wash: #fff4f5;
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  --mosaic-bg: #000000;
+  --mosaic-surface: #121212;
+  --mosaic-surface-soft: #1a1a1a;
+  --mosaic-surface-hover: #262626;
+  --mosaic-line: #262626;
+  --mosaic-line-soft: #1f1f1f;
+  --mosaic-ink: #f5f5f5;
+  --mosaic-ink-soft: #e0e0e0;
+  --mosaic-ink-strong: #ffffff;
+  --mosaic-muted: #a8a8a8;
+  --mosaic-muted-dark: #c7c7c7;
+  --mosaic-blue: #0095f6;
+  --mosaic-blue-hover: #1877f2;
+  --mosaic-blue-ink: #b3dbff;
+  --mosaic-red: #ff5c6c;
+  --mosaic-red-ink: #ff8a95;
+  --mosaic-red-wash: #2a1114;
+  color-scheme: dark;
+}
+
 *,
 *::before,
 *::after {

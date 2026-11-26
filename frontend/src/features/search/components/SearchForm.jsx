@@ -12,7 +12,7 @@ const SearchForm = ({ value, onChange, onSubmit, onClear, inputRef }) => {
         </svg>
 
         <label htmlFor={inputId} className="sr-only">
-          Search Mosaic
+          Search PhotoSocial
         </label>
 
         <input
