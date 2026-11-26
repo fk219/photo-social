@@ -61,7 +61,7 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
     res.status(200).json({
         ok: true,
-        service: "mosaic-api",
+        service: "photo-social-api",
         database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
         uptimeSeconds: Math.round(process.uptime())
     });

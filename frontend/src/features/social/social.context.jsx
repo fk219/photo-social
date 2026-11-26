@@ -60,13 +60,13 @@ export const SocialProvider = ({ children }) => {
     const onRefresh = () => refreshUnread();
 
     document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("mosaic:refresh-unread", onRefresh);
+    window.addEventListener("photosocial:refresh-unread", onRefresh);
 
     return () => {
       activeRef.current = false;
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("mosaic:refresh-unread", onRefresh);
+      window.removeEventListener("photosocial:refresh-unread", onRefresh);
     };
   }, [refreshUnread, user]);
 
@@ -86,5 +86,5 @@ export const SocialProvider = ({ children }) => {
 };
 
 export const requestUnreadRefresh = () => {
-  window.dispatchEvent(new Event("mosaic:refresh-unread"));
+  window.dispatchEvent(new Event("photosocial:refresh-unread"));
 };

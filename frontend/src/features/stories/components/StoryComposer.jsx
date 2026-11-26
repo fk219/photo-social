@@ -112,7 +112,7 @@ const StoryComposer = ({ onClose, onCreated }) => {
 
       const story = data?.story ?? data;
 
-      window.dispatchEvent(new Event("mosaic:stories-changed"));
+      window.dispatchEvent(new Event("photosocial:stories-changed"));
       onCreated?.(story);
       onClose?.();
     } catch (err) {

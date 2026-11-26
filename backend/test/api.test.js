@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'mosaic-test-secret';
+process.env.JWT_SECRET = 'photosocial-test-secret';
 process.env.IMAGEKIT_PRIVATE_KEY = 'test-imagekit-key';
 process.env.MONGOMS_STARTUP_TIMEOUT = '120000';
 
@@ -15,7 +15,7 @@ let mongod;
 
 before(async () => {
   mongod = await MongoMemoryServer.create();
-  await mongoose.connect(mongod.getUri('mosaic_test'));
+  await mongoose.connect(mongod.getUri('photosocial_test'));
 });
 
 after(async () => {

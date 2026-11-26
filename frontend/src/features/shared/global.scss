@@ -3,44 +3,44 @@
 
 :root,
 html[data-theme="light"] {
-  --mosaic-bg: #fafafa;
-  --mosaic-surface: #ffffff;
-  --mosaic-surface-soft: #f5f5f5;
-  --mosaic-surface-hover: #efefef;
-  --mosaic-line: #dbdbdb;
-  --mosaic-line-soft: #efefef;
-  --mosaic-ink: #262626;
-  --mosaic-ink-soft: #363636;
-  --mosaic-ink-strong: #000000;
-  --mosaic-muted: #737373;
-  --mosaic-muted-dark: #555555;
-  --mosaic-blue: #0095f6;
-  --mosaic-blue-hover: #0086dd;
-  --mosaic-blue-ink: #00376b;
-  --mosaic-red: #ed4956;
-  --mosaic-red-ink: #c72b3a;
-  --mosaic-red-wash: #fff4f5;
+  --photosocial-bg: #fafafa;
+  --photosocial-surface: #ffffff;
+  --photosocial-surface-soft: #f5f5f5;
+  --photosocial-surface-hover: #efefef;
+  --photosocial-line: #dbdbdb;
+  --photosocial-line-soft: #efefef;
+  --photosocial-ink: #262626;
+  --photosocial-ink-soft: #363636;
+  --photosocial-ink-strong: #000000;
+  --photosocial-muted: #737373;
+  --photosocial-muted-dark: #555555;
+  --photosocial-blue: #0095f6;
+  --photosocial-blue-hover: #0086dd;
+  --photosocial-blue-ink: #00376b;
+  --photosocial-red: #ed4956;
+  --photosocial-red-ink: #c72b3a;
+  --photosocial-red-wash: #fff4f5;
   color-scheme: light;
 }
 
 html[data-theme="dark"] {
-  --mosaic-bg: #000000;
-  --mosaic-surface: #121212;
-  --mosaic-surface-soft: #1a1a1a;
-  --mosaic-surface-hover: #262626;
-  --mosaic-line: #262626;
-  --mosaic-line-soft: #1f1f1f;
-  --mosaic-ink: #f5f5f5;
-  --mosaic-ink-soft: #e0e0e0;
-  --mosaic-ink-strong: #ffffff;
-  --mosaic-muted: #a8a8a8;
-  --mosaic-muted-dark: #c7c7c7;
-  --mosaic-blue: #0095f6;
-  --mosaic-blue-hover: #1877f2;
-  --mosaic-blue-ink: #b3dbff;
-  --mosaic-red: #ff5c6c;
-  --mosaic-red-ink: #ff8a95;
-  --mosaic-red-wash: #2a1114;
+  --photosocial-bg: #000000;
+  --photosocial-surface: #121212;
+  --photosocial-surface-soft: #1a1a1a;
+  --photosocial-surface-hover: #262626;
+  --photosocial-line: #262626;
+  --photosocial-line-soft: #1f1f1f;
+  --photosocial-ink: #f5f5f5;
+  --photosocial-ink-soft: #e0e0e0;
+  --photosocial-ink-strong: #ffffff;
+  --photosocial-muted: #a8a8a8;
+  --photosocial-muted-dark: #c7c7c7;
+  --photosocial-blue: #0095f6;
+  --photosocial-blue-hover: #1877f2;
+  --photosocial-blue-ink: #b3dbff;
+  --photosocial-red: #ff5c6c;
+  --photosocial-red-ink: #ff8a95;
+  --photosocial-red-wash: #2a1114;
   color-scheme: dark;
 }
 

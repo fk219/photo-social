@@ -289,7 +289,7 @@ const StoryViewer = ({
       if (!mountedRef.current) return;
 
       onDeletedRef.current?.(story._id);
-      window.dispatchEvent(new Event("mosaic:stories-changed"));
+      window.dispatchEvent(new Event("photosocial:stories-changed"));
 
       const nextGroups = viewGroups
         .map((item, index) =>

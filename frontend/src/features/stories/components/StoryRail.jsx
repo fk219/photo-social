@@ -90,11 +90,11 @@ const StoryRail = () => {
 
     const onChanged = () => load(false);
 
-    window.addEventListener("mosaic:stories-changed", onChanged);
+    window.addEventListener("photosocial:stories-changed", onChanged);
 
     return () => {
       active = false;
-      window.removeEventListener("mosaic:stories-changed", onChanged);
+      window.removeEventListener("photosocial:stories-changed", onChanged);
     };
   }, [viewerName]);
 

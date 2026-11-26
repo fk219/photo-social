@@ -90,9 +90,9 @@ export const compressImage = async (file) => {
     );
   }
 
-  const baseName = (file.name || "mosaic").replace(/\.[^.]+$/, "");
+  const baseName = (file.name || "photosocial").replace(/\.[^.]+$/, "");
 
-  return new File([blob], `${baseName || "mosaic"}.jpg`, {
+  return new File([blob], `${baseName || "photosocial"}.jpg`, {
     type: "image/jpeg",
     lastModified: Date.now(),
   });

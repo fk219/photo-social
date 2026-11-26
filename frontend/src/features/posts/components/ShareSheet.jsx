@@ -115,7 +115,7 @@ const ShareSheet = ({ post, onClose }) => {
 
       await sendMessage(conversation._id, { postId: post._id });
       setSentTo(person.username);
-      window.dispatchEvent(new Event("mosaic:refresh-unread"));
+      window.dispatchEvent(new Event("photosocial:refresh-unread"));
     } catch (err) {
       setError(
         getErrorMessage(err, "This post could not be sent. Try again.")

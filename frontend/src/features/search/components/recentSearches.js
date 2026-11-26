@@ -1,4 +1,4 @@
-export const RECENT_SEARCHES_KEY = "mosaic:recent-searches";
+export const RECENT_SEARCHES_KEY = "photosocial:recent-searches";
 export const RECENT_SEARCH_LIMIT = 8;
 
 const cleanValue = (value) =>

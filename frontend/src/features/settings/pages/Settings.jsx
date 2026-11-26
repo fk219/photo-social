@@ -18,7 +18,7 @@ import "../style/settings.scss";
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 72;
 const DELETE_CONFIRMATION = "DELETE";
-const DEMO_EMAIL = "demo@mosaic.local";
+const DEMO_EMAIL = "demo@photosocial.local";
 
 const downloadBlob = (blob, filename) => {
   const url = URL.createObjectURL(blob);
@@ -223,7 +223,7 @@ const Settings = () => {
               type: "application/json",
             });
 
-      downloadBlob(blob, `mosaic-export-${username || "account"}.json`);
+      downloadBlob(blob, `photosocial-export-${username || "account"}.json`);
       setExported(true);
     } catch (error) {
       setExportError(await readExportError(error));

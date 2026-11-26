@@ -19,7 +19,7 @@ const BIO_LIMIT = 160;
 const NAME_LIMIT = 60;
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 72;
-const DEMO_EMAIL = "demo@mosaic.local";
+const DEMO_EMAIL = "demo@photosocial.local";
 
 const cookieOptions = {
     httpOnly: true,
@@ -414,11 +414,11 @@ const exportAccountController = async (req, res) => {
 
     res.set({
         "Cache-Control": "no-store",
-        "Content-Disposition": `attachment; filename="mosaic-export-${safeUsername}.json"`,
+        "Content-Disposition": `attachment; filename="photosocial-export-${safeUsername}.json"`,
     });
 
     return res.status(200).json({
-        format: "mosaic-account-export",
+        format: "photosocial-account-export",
         version: 1,
         exportedAt: new Date().toISOString(),
         account: {

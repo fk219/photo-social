@@ -1,6 +1,6 @@
 # PhotoSocial
 
-A full social photo app built on the PhotoSocial codebase: feed, stories, direct messages, notifications, search, saved posts, threaded comments, follows and profiles.
+A full social photo app: feed, stories, direct messages, notifications, search, saved posts, threaded comments, follows and profiles.
 
 **Live app:** https://photosocial.furqankhan.dev
 **API:** https://insta-clone-backend-n518.onrender.com
