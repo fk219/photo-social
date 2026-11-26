@@ -18,7 +18,7 @@ PhotoSocial is a photo-sharing app built around the whole social loop, not a sin
 
 A visitor can browse Explore and open a shared post without an account. A signed-in member gets a Following feed, can publish photos and stories, follow people, reply in comment threads, message another member, share a post into a conversation, save posts privately, and receive notifications for the activity that involves them.
 
-The product is deliberately complete rather than a mockup of one flow. Every action writes to the same post, user and conversation records, so a photo can be liked, discussed, saved, sent in a DM, reported or deleted without leaving the loop.
+The product covers the whole path rather than one flow. All of those features share the same post, user and conversation records, so a photo can be liked, discussed, saved, sent in a DM, reported or deleted without leaving the loop.
 
 ## The signature idea
 
@@ -173,7 +173,7 @@ The Vite dev server proxies `/api` to the deployed Render API by default. To use
 VITE_API_URL=http://localhost:3006
 ```
 
-On PowerShell, use `Copy-Item .env.example .env` in place of `cp`.
+On PowerShell, replace `cp` with `Copy-Item`.
 
 ### Environment variables
 
@@ -193,7 +193,7 @@ The sign-in page can fill the shared demo account: `demo_photo` / `DemoPhotoSoci
 
 ## API
 
-`GET /health` reports API and database readiness. Product routes are prefixed with `/api`. Feed, post detail, profile, comment, like-list, search and story-read routes also work for signed-out visitors; social actions and account routes need the auth cookie.
+`GET /health` reports API and database readiness. Product routes are prefixed with `/api`. Feed, post detail, profile, comment, like-list and search reads also work for signed-out visitors; story routes, social actions and account routes need the auth cookie.
 
 ### Auth and account
 
@@ -204,7 +204,7 @@ The sign-in page can fill the shared demo account: `demo_photo` / `DemoPhotoSoci
 | `GET` | `/api/auth/get-me` | Current user |
 | `POST` | `/api/auth/logout` | Clear the cookie and blacklist the token |
 | `PATCH` | `/api/auth/password` | Change password and sign out all sessions |
-| `GET` | `/api/auth/export` | Download account, social and media records as JSON |
+| `GET` | `/api/auth/export` | Download account, posts, comments, messages, stories, saves and social records as JSON |
 | `DELETE` | `/api/auth/account` | Delete the account and related records |
 
 ### Posts, comments and saves
@@ -261,7 +261,7 @@ The sign-in page can fill the shared demo account: `demo_photo` / `DemoPhotoSoci
 | `POST` | `/api/users/unfollow/:username` | Unfollow an account |
 | `POST` | `/api/users/:username/block` | Block an account |
 | `DELETE` | `/api/users/:username/block` | Unblock an account |
-| `POST` | `/api/users/:username/report` | Report an account |
+| `POST` | `/api/users/:username/report` | Report a user, post or comment (`targetType` and `targetId`) |
 
 ### Search and stories
 
@@ -285,10 +285,10 @@ npm test                     # 7 API tests against an in-memory MongoDB
 
 cd ../frontend
 npm run build                # production build
-npm run lint                 # currently reports two no-empty errors in src/theme.js
+npm run lint                 # ESLint
 ```
 
-The API suite covers health, the guest Explore feed, auth guards, registration validation and duplicate handling, login, public profiles, post-write authorization and public search. The web build passes. The lint script is configured with ESLint and flags the empty `catch {}` blocks in `src/theme.js`; fix those before expecting the CI web job to pass.
+The API suite covers health, the guest Explore feed, auth guards, registration validation and duplicate handling, login, public profiles, post-write authorization and public search. The web build and lint pass.
 
 ## Deployment
 
